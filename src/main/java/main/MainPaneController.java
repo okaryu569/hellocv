@@ -120,7 +120,7 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onFaceDetectMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [FaceDetect]");
-		Mat faceDetect = ImageContoroller.faceDetect(targetImageData.getCurrentMat());
+		Mat faceDetect = ImageContoroller.faceDetectToAddRect(targetImageData.getCurrentMat());
 		targetImageData.getImageDataLog().add(faceDetect);
 		mainImageView.setImage(targetImageData.getWRImage());
 	}
@@ -139,7 +139,7 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onEffectMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Effect]");
-		Mat resultOfEffect = ImageContoroller.partEffect(targetImageData.getCurrentMat());
+		Mat resultOfEffect = ImageContoroller.faceDetectToAddEffect(targetImageData.getCurrentMat());
 		targetImageData.getImageDataLog().add(resultOfEffect);
 		mainImageView.setImage(targetImageData.getWRImage());
 	}

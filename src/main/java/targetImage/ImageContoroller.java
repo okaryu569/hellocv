@@ -43,39 +43,39 @@ public class ImageContoroller {
 		return null;
 	}
 
-	public static Mat faceDetect(Mat srcMat) {
-		CascadeClassifier faceDetector = new CascadeClassifier(
-				ImageContoroller.class.getClassLoader().getResource("lbpcascade_frontalface.xml").getPath());
-		// CascadeClassifier faceDetector = new CascadeClassifier(
-		// RESOURCES_PATH + File.separator + "lbpcascade_frontalface.xml");
-		MatOfRect faceDetections = new MatOfRect();
-		faceDetector.detectMultiScale(srcMat, faceDetections);
+	public static Mat faceDetectToAddRect(Mat srcMat) {
+		MatOfRect faceDetections = detectFace(srcMat);
 		for (Rect rect : faceDetections.toArray()) {
 			Imgproc.rectangle(srcMat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height),
 					new Scalar(0, 255, 0));
 		}
-
 		System.out.println(String.format("HelloCv : → Detected %s faces", faceDetections.toArray().length));
-
 		return srcMat;
 	}
 
-	public static Mat effect02(Mat srcMat) {
-		MatOfRect faceDetections = rectOfFaceDetection(srcMat);
-		Mat effectedMat = edgeDetect(srcMat);
-		for (Rect rect : faceDetections.toArray()) {
-			Mat mask = new Mat(srcMat.rows(), srcMat.cols(), srcMat.type(), new Scalar(0, 0, 0));
-			srcMat = roi(srcMat, effectedMat, mask);
-		}
-		return null;
-	}
-
-	private static MatOfRect rectOfFaceDetection(Mat srcMat) {
+	private static MatOfRect detectFace(Mat srcMat) {
 		CascadeClassifier faceDetector = new CascadeClassifier(
-				RESOURCES_PATH + File.separator + "lbpcascade_frontalface.xml");
+				ImageContoroller.class.getClassLoader().getResource("lbpcascade_frontalface.xml").getPath());
 		MatOfRect faceDetections = new MatOfRect();
 		faceDetector.detectMultiScale(srcMat, faceDetections);
 		return faceDetections;
+	}
+
+	public static Mat faceDetectToAddEffect(Mat srcMat) {
+		MatOfRect faceDetections = detectFace(srcMat);
+		System.out.println(String.format("HelloCv : → Detected %s faces", faceDetections.toArray().length));
+
+		for (Rect rect : faceDetections.toArray()) {
+			Mat effectedMat = srcMat.clone();
+			Imgproc.cvtColor(effectedMat, effectedMat, Imgproc.COLOR_RGB2GRAY);
+			Imgproc.cvtColor(effectedMat, effectedMat, Imgproc.COLOR_GRAY2RGB);
+
+			Mat mask = new Mat(srcMat.rows(), srcMat.cols(), srcMat.type(), new Scalar(0, 0, 0));
+			Imgproc.rectangle(mask, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height),
+					new Scalar(255, 255, 255), -1);
+			srcMat = effectToRoI(srcMat, effectedMat, mask);
+		}
+		return srcMat;
 	}
 
 	public static Mat edgeDetect(Mat srcMat) {
@@ -97,13 +97,13 @@ public class ImageContoroller {
 		Mat effectedMat = srcMat.clone();
 		Imgproc.cvtColor(effectedMat, effectedMat, Imgproc.COLOR_RGB2GRAY);
 		Imgproc.cvtColor(effectedMat, effectedMat, Imgproc.COLOR_GRAY2RGB);
-		return roi(srcMat, effectedMat, mask);
+		return effectToRoI(srcMat, effectedMat, mask);
 	}
 
-	public static Mat roi(Mat srcMat, Mat effectedMat, Mat mask) {
-		Core.bitwise_and(effectedMat, mask, effectedMat);// mask 部分の切り抜き
-		Core.bitwise_not(mask, mask); // maskを反転します
-		Core.bitwise_and(srcMat, mask, srcMat); // 元画像からmask部分を除去して背景画像を準備します
+	private static Mat effectToRoI(Mat srcMat, Mat effectedMat, Mat mask) {
+		Core.bitwise_and(effectedMat, mask, effectedMat);
+		Core.bitwise_not(mask, mask);
+		Core.bitwise_and(srcMat, mask, srcMat);
 		Mat dst = new Mat();
 		Core.bitwise_or(srcMat, effectedMat, dst);
 		return dst;
