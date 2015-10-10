@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<VBox fx:id="topPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="480.0" prefWidth="640.0" styleClass="base" stylesheets="@Main.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.MainPaneController">
+   <children>
+      <MenuBar>
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" onAction="#onOpenMenuItemFired" text="Open..." />
+                  <MenuItem fx:id="saveMenuItem" mnemonicParsing="false" onAction="#onSaveMenuItemFired" text="Save" />
+                  <MenuItem fx:id="saveAsMenuItem" mnemonicParsing="false" onAction="#onSaveAsMenuItemFired" text="Save As..." />
+                  <MenuItem mnemonicParsing="false" onAction="#onQuitMenuItemFired" text="Quit" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Edit">
+            <items>
+              <MenuItem fx:id="faceDetectMenuItem" mnemonicParsing="false" onAction="#onFaceDetectMenuItemFired" text="Face Ditection" />
+                  <MenuItem fx:id="edgeDetectMenuItem" mnemonicParsing="false" onAction="#onEdgeDetectMenuItemFired" text="Edge Ditection" />
+                  <MenuItem fx:id="effectMenuItem" mnemonicParsing="false" onAction="#onEffectMenuItemFired" text="Effect Template" />
+            </items>
+          </Menu>
+            <Menu mnemonicParsing="false" text="View">
+               <items>
+                  <MenuItem fx:id="fitScreenMenuItem" mnemonicParsing="false" onAction="#onFitScreenMenuItemFired" text="Fit Screen" />
+                  <MenuItem fx:id="originalSizeMenuItem" mnemonicParsing="false" onAction="#onOriginalSizeMenuItemFired" text="Original Size" />
+               </items>
+            </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <HBox maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" VBox.vgrow="ALWAYS">
+         <children>
+            <ScrollPane fx:id="mainImagePane" HBox.hgrow="ALWAYS">
+               <content>
+                  <ImageView fx:id="mainImageView" pickOnBounds="true" preserveRatio="true" />
+               </content>
+            </ScrollPane>
+         </children>
+      </HBox>
+   </children>
+</VBox>

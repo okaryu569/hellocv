@@ -1,0 +1,8 @@
+.base {
+	-fx-font-family: meiryo_ui,segoe_ui;
+	-fx-font-size: 10px;
+}
+
+.effect_menu_button{
+	-fx-padding: 5px,0px,5px,0px;
+}
