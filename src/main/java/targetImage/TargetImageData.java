@@ -15,22 +15,25 @@ public class TargetImageData {
 	private int current;
 
 	public TargetImageData(File srcFile) {
-		super();
-		Mat srcMat = ImageContoroller.fromFile(srcFile);
-		this.imageDataLog.add(srcMat);
+		this.setTgtImage(srcFile);
 		this.srcFile = srcFile;
-		this.current = 0;
+		// this.current = 0;
+	}
+
+	private void setTgtImage(File imageFile) {
+		Mat srcMat = ImageContoroller.fileToMat(imageFile);
+		this.imageDataLog.add(srcMat);
 	}
 
 	public List<Mat> getImageDataLog() {
 		return imageDataLog;
 	}
 
-	public Mat getImageData(int arrayNo) {
-		if (arrayNo > this.imageDataLog.size())
-			return null;
-		return this.imageDataLog.get(arrayNo - 1);
-	}
+	// public Mat getImageData(int arrayNo) {
+	// if (arrayNo > this.imageDataLog.size())
+	// return null;
+	// return this.imageDataLog.get(arrayNo - 1);
+	// }
 
 	public File getSrcFile() {
 		return srcFile;
