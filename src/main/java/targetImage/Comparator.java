@@ -38,6 +38,13 @@ public class Comparator {
 			resultsList.add(result);
 		}
 
+		// tgtFaces.stream().parallel().forEach((tgtMat)->{
+		// List<Float> result = new ArrayList<>();
+		// srcMats.stream().parallel().forEach((srcMat)->{
+		// result.add(getMinOfDistance(srcMat, tgtMat));
+		// });
+		// });
+
 		// Pair<List<List<Float>>,Mat> result = new Pair<List<List<Float>>,
 		// Mat>(resultsList, value);
 

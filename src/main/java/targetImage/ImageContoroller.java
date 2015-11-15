@@ -17,6 +17,7 @@ import org.opencv.objdetect.CascadeClassifier;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.WritableImage;
+import javafx.util.Pair;
 
 public class ImageContoroller {
 
@@ -54,6 +55,15 @@ public class ImageContoroller {
 		return mats;
 	}
 
+	public static List<Pair<File, WritableImage>> filesToImages(List<File> files) {
+		List<Pair<File, WritableImage>> images = new ArrayList<>();
+		for (File file : files) {
+			Pair<File, WritableImage> image = new Pair<>(file, MatToWRImage(fileToMat(file)));
+			images.add(image);
+		}
+		return images;
+	}
+
 	public static List<File> listFile(String directoryPath, String regex) {
 		File srcDir = new File(directoryPath);
 		if (!srcDir.isDirectory())
@@ -76,8 +86,8 @@ public class ImageContoroller {
 			Rect rect = faceDetections.toArray()[i];
 			String name = "Face: " + (i + 1);
 			Imgproc.rectangle(srcMat, new Point(rect.x, rect.y), new Point(rect.x + rect.width, rect.y + rect.height),
-					new Scalar(0, 255, 0), 4);
-			Imgproc.putText(srcMat, name, new Point(rect.x, rect.y), 1, 3, new Scalar(0, 0, 255), 4);
+					new Scalar(0, 255, 0), 6);
+			Imgproc.putText(srcMat, name, new Point(rect.x, rect.y), 1, 5, new Scalar(0, 0, 255), 6);
 		}
 		System.out.println(String.format("HelloCv : → Detected %s faces", faceDetections.toArray().length));
 		return srcMat;
