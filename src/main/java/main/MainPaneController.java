@@ -8,9 +8,11 @@ import java.util.ResourceBundle;
 import org.opencv.core.Mat;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
@@ -26,6 +28,9 @@ public class MainPaneController implements Initializable {
 
 	@FXML
 	private ScrollPane mainImagePane;
+
+	@FXML
+	private ScrollPane srcImagePane;
 
 	@FXML
 	private MenuItem saveMenuItem;
@@ -165,23 +170,44 @@ public class MainPaneController implements Initializable {
 		System.out.println("HelloCv : [Finish Comparison]");
 	}
 
+	private void setSrcImagePane() {
+		int numOfSrc = 6;
+		VBox srcImgVBox = new VBox(numOfSrc);
+
+		ImageView srcImageView = new ImageView();
+
+		srcImagePane.getChildrenUnmodifiable().add(srcImgVBox);
+		// List<ImageView> srcViewList =
+		for (Node node : srcImgVBox.getChildren()) {
+		}
+	}
+
 	@FXML
 	void onFitScreenMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Fit Screen Size]");
-		// DoubleProperty width = new SimpleDoubleProperty();
-		// Double x = mainImagePane.getWidth();
-		// int tmp =10;
 
-		// width.bind(mainImagePane.getWidth().getProperty());
 		mainImageView.setFitHeight(mainImagePane.getHeight());
 		mainImageView.setFitWidth(mainImagePane.getWidth());
+
+		mainImagePane.heightProperty().addListener(imageHeightChangeListener);
+		mainImagePane.heightProperty().addListener(imageWidthChangeListener);
 	}
 
 	@FXML
 	void onOriginalSizeMenuItemFired(ActionEvent event) {
-		System.out.println("HelloCv : [Original Size]");
+		System.out.println("HelloCv : [Original Size] ");
 		mainImageView.setFitHeight(targetImageData.getWRImage().getHeight());
 		mainImageView.setFitWidth(targetImageData.getWRImage().getWidth());
+
+		mainImagePane.heightProperty().removeListener(imageHeightChangeListener);
+		mainImagePane.heightProperty().removeListener(imageWidthChangeListener);
 	}
 
+	private ChangeListener<? super Number> imageHeightChangeListener = (ob, o, n) -> {
+		mainImageView.setFitHeight(mainImagePane.getHeight());
+	};
+
+	private ChangeListener<? super Number> imageWidthChangeListener = (ob, o, n) -> {
+		mainImageView.setFitWidth(mainImagePane.getWidth());
+	};
 }
