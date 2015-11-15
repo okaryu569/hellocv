@@ -9,12 +9,12 @@ import org.opencv.imgcodecs.Imgcodecs;
 
 import javafx.scene.image.WritableImage;
 
-public class TargetImageData {
+public class ImageData {
 	private List<Mat> imageDataLog = new ArrayList<>();
 	private File srcFile;
 	private int current;
 
-	public TargetImageData(File srcFile) {
+	public ImageData(File srcFile) {
 		this.setTgtImage(srcFile);
 		this.srcFile = srcFile;
 		// this.current = 0;

@@ -13,20 +13,33 @@ import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 
 public class Comparator {
-
 	private static List<Mat> srcMats;
+	private static ImageData targetImageData;
 
 	/**
-	 * targetMat から顔を検出し、リスト tgtFaces を作成。
-	 * 
-	 * @param srcMats
-	 *            比較元の Mat リスト
-	 * @param targetMat
-	 *            比較対象の Mat
-	 * @return
+	 * 比較対象の ImageData を File から設定する．
 	 */
-	public static List<List<Float>> getResultList(Mat targetMat) {
+	public static void setTargetImageData(File targetFile) {
+		targetImageData = new ImageData(targetFile);
+	}
+
+	/**
+	 * 比較対象の ImageData の最新の Mat を返す
+	 * 
+	 * @return Mat
+	 */
+	public static Mat getCurrentMat() {
+		return targetImageData.getCurrentMat();
+	}
+
+	/**
+	 * それぞれの比較元と、比較対象から検出した顔部分との比較結果のスコアを List として返す．
+	 * 
+	 * @return List<List<Float>>
+	 */
+	public static List<List<Float>> getResultList() {
 		createResourceMats();
+		Mat targetMat = targetImageData.getCurrentMat();
 
 		List<List<Float>> resultsList = new ArrayList<>();
 		List<Mat> tgtFaces = ImageContoroller.getFacesFromsrcMat(targetMat);
@@ -44,9 +57,6 @@ public class Comparator {
 		// result.add(getMinOfDistance(srcMat, tgtMat));
 		// });
 		// });
-
-		// Pair<List<List<Float>>,Mat> result = new Pair<List<List<Float>>,
-		// Mat>(resultsList, value);
 
 		return resultsList;
 	}

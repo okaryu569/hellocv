@@ -46,7 +46,12 @@ public class ImageContoroller {
 		return null;
 	}
 
-	// 比較元画像リストを返すメソッド
+	/**
+	 * List<File> の画像ファイルから取り出した Mat のリストを返す
+	 * 
+	 * @param files
+	 * @return List<Mat>
+	 */
 	public static List<Mat> filesToMats(List<File> files) {
 		List<Mat> mats = new ArrayList<>();
 		for (File file : files) {
@@ -55,6 +60,12 @@ public class ImageContoroller {
 		return mats;
 	}
 
+	/**
+	 * List<File> の画像ファイルから取り出した WritableImage と File の Pair のリストを返す
+	 * 
+	 * @param files
+	 * @return
+	 */
 	public static List<Pair<File, WritableImage>> filesToImages(List<File> files) {
 		List<Pair<File, WritableImage>> images = new ArrayList<>();
 		for (File file : files) {
@@ -64,6 +75,13 @@ public class ImageContoroller {
 		return images;
 	}
 
+	/**
+	 * 指定されたディレクトリから正規表現に一致するファイルのリストを作成し返す．
+	 * 
+	 * @param directoryPath
+	 * @param regex
+	 * @return List<File>
+	 */
 	public static List<File> listFile(String directoryPath, String regex) {
 		File srcDir = new File(directoryPath);
 		if (!srcDir.isDirectory())
@@ -80,7 +98,13 @@ public class ImageContoroller {
 		return listFile;
 	}
 
-	public static Mat detectFaceToAddRect(Mat srcMat) {
+	/**
+	 * srcMat の顔部分を検出し、そこに rectangle を配置した Mat を返す
+	 * 
+	 * @param srcMat
+	 * @return Mat
+	 */
+	public static Mat addRectangle(Mat srcMat) {
 		MatOfRect faceDetections = detectFace(srcMat);
 		for (int i = 0; i < faceDetections.toArray().length; i++) {
 			Rect rect = faceDetections.toArray()[i];
@@ -91,6 +115,10 @@ public class ImageContoroller {
 		}
 		System.out.println(String.format("HelloCv : → Detected %s faces", faceDetections.toArray().length));
 		return srcMat;
+	}
+
+	public static WritableImage addRectangleToWRImage(Mat srcMat) {
+		return MatToWRImage(addRectangle(srcMat));
 	}
 
 	private static MatOfRect detectFace(Mat srcMat) {

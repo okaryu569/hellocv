@@ -5,8 +5,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import org.opencv.core.Mat;
-
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
@@ -22,7 +20,6 @@ import javafx.stage.FileChooser;
 import javafx.util.Pair;
 import targetImage.Comparator;
 import targetImage.ImageContoroller;
-import targetImage.TargetImageData;
 
 public class MainPaneController implements Initializable {
 	@FXML
@@ -88,7 +85,7 @@ public class MainPaneController implements Initializable {
 	@FXML
 	private Label srcImageLabel05;
 
-	private TargetImageData targetImageData;
+	// private TargetImageData targetImageData;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
@@ -124,13 +121,13 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onOpenMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Open]");
-		// TODO:現在のファイルに変更があれば、確認
 		File file = this.selectOpenFile();
 		if (file == null)
 			return;
 
-		targetImageData = new TargetImageData(file);
-		mainImageView.setImage(targetImageData.getWRImage());
+		Comparator.setTargetImageData(file);
+		// targetImageData = new TargetImageData(file);
+		mainImageView.setImage(ImageContoroller.MatToWRImage(Comparator.getCurrentMat()));
 		this.setDisableToMenuItems(false);
 		System.out.println("HelloCv : → Open " + file.getName());
 	}
@@ -151,8 +148,7 @@ public class MainPaneController implements Initializable {
 		System.out.println("HelloCv : [Save]");
 		// TODO:上書き保存
 		// TODO:変更がない場合は、押下不可
-		targetImageData.saveImage();
-
+		// targetImageData.saveImage();
 	}
 
 	@FXML
@@ -176,7 +172,6 @@ public class MainPaneController implements Initializable {
 
 	@FXML
 	void onQuitMenuItemFired(ActionEvent event) {
-		// TODO:変更が保存されていなければ終了確認ダイアログ
 		System.out.println("HelloCv : [Quit]");
 		Platform.exit();
 	}
@@ -184,17 +179,17 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onFaceDetectMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [FaceDetect]");
-		Mat faceDetect = ImageContoroller.detectFaceToAddRect(targetImageData.getCurrentMat());
-		targetImageData.getImageDataLog().add(faceDetect);
-		mainImageView.setImage(targetImageData.getWRImage());
+		WritableImage faceDetect = ImageContoroller.addRectangleToWRImage(Comparator.getCurrentMat());
+		mainImageView.setImage(faceDetect);
 	}
 
 	@FXML
 	void onEdgeDetectMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [EdgeDetect]");
-		Mat resultOfEffect = ImageContoroller.edgeDetect(targetImageData.getCurrentMat());
-		targetImageData.getImageDataLog().add(resultOfEffect);
-		mainImageView.setImage(targetImageData.getWRImage());
+		// Mat resultOfEffect =
+		// ImageContoroller.edgeDetect(targetImageData.getCurrentMat());
+		// targetImageData.getImageDataLog().add(resultOfEffect);
+		// mainImageView.setImage(targetImageData.getWRImage());
 	}
 
 	/**
@@ -204,17 +199,15 @@ public class MainPaneController implements Initializable {
 	void onEffectMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Excute Comparison]");
 
-		List<List<Float>> resultList = Comparator.getResultList(targetImageData.getCurrentMat());
+		List<List<Float>> resultList = Comparator.getResultList();
 		for (int i = 0; i < resultList.size(); i++) {
 			System.out.println("HelloCv :  →face " + (i + 1));
 			for (Float dist : resultList.get(i)) {
 				System.out.println("HelloCv :   Distance = " + dist);
 			}
 		}
-
-		Mat resultMat = ImageContoroller.detectFaceToAddRect(targetImageData.getCurrentMat());
-		mainImageView.setImage(ImageContoroller.MatToWRImage(resultMat));
-
+		WritableImage faceDetect = ImageContoroller.addRectangleToWRImage(Comparator.getCurrentMat());
+		mainImageView.setImage(faceDetect);
 		System.out.println("HelloCv : [Finish Comparison]");
 	}
 
@@ -230,8 +223,9 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onOriginalSizeMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Original Size] ");
-		mainImageView.setFitHeight(targetImageData.getWRImage().getHeight());
-		mainImageView.setFitWidth(targetImageData.getWRImage().getWidth());
+		WritableImage wi = ImageContoroller.MatToWRImage(Comparator.getCurrentMat());
+		mainImageView.setFitHeight(wi.getHeight());
+		mainImageView.setFitWidth(wi.getWidth());
 		mainImagePane.heightProperty().removeListener(imageHeightChangeListener);
 		mainImagePane.heightProperty().removeListener(imageWidthChangeListener);
 	}
