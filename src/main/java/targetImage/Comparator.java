@@ -1,20 +1,33 @@
 package targetImage;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.opencv.core.DMatch;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
+import org.opencv.imgproc.Imgproc;
 
 public class Comparator {
+
+	private static final Float INICIAL_VALUE = 100000.0F;
+
 	private static List<Mat> srcMats;
 	private static ImageData targetImageData;
+
+	private static Map<String, Mat> resourceMats;
 
 	/**
 	 * 比較対象の ImageData を File から設定する．
@@ -37,34 +50,99 @@ public class Comparator {
 	 * 
 	 * @return List<List<Float>>
 	 */
-	public static List<List<Float>> getResultList() {
+	public static CompareResult getCompareResult() {
 		createResourceMats();
-		Mat targetMat = targetImageData.getCurrentMat();
 
-		List<List<Float>> resultsList = new ArrayList<>();
-		List<Mat> tgtFaces = ImageContoroller.getFacesFromsrcMat(targetMat);
-		for (Mat tgtFace : tgtFaces) {
-			List<Float> result = new ArrayList<>();
-			for (Mat srcMat : srcMats) {
-				result.add(getMinOfDistance(srcMat, tgtFace));
+		Mat targetMat = targetImageData.getCurrentMat();
+		Map<Rect, Mat> targetFaces = ImageContoroller.getFaceMapFromsrcMat(targetMat);
+		Set<Rect> targetKeySet = targetFaces.keySet();
+
+		Map<Rect, Map<String, Float>> resultMaps = new HashMap<>();
+
+		targetKeySet.stream().parallel().forEach((targetKey) -> {
+			Mat targetFace = targetFaces.get(targetKey);
+			Map<String, Float> resultMap = new HashMap<>();
+			Set<String> srcKeySet = resourceMats.keySet();
+
+			srcKeySet.stream().parallel().forEach((srcKey) -> {
+				Float score = getMinOfDistance(resourceMats.get(srcKey), targetFace);
+				resultMap.put(srcKey, score);
+			});
+
+			Float tmp = 0F;
+			for (String srcKey : resultMap.keySet()) {
+				tmp += resultMap.get(srcKey);
 			}
-			resultsList.add(result);
+			Float average = tmp / resourceMats.size();
+			if (average < 1000F) {
+				resultMap.put("average", average);
+				resultMaps.put(targetKey, resultMap);
+			}
+		});
+
+		Mat resultMat = createResultMat(targetMat, resultMaps);
+
+		return new CompareResult(resultMaps, resultMat);
+
+		// for (Rect targetKey : targetKeySet) {
+		// Mat targetFace = targetFaces.get(targetKey);
+		// Map<String, Float> resultMap = new HashMap<>();
+		// Set<String> srcKeySet = resourceMats.keySet();
+		// Float tmp = 0F;
+		//
+		// for (String srcKey : srcKeySet) {
+		// Float score = getMinOfDistance(resourceMats.get(srcKey), targetFace);
+		// resultMap.put(srcKey, score);
+		// tmp += score;
+		// }
+		// Float average = tmp / resourceMats.size();
+		// resultMap.put("average", average);
+		//
+		// resultMaps.put(targetKey, resultMap);
+		// }
+	}
+
+	private static Mat createResultMat(Mat targetMat, Map<Rect, Map<String, Float>> resultMaps) {
+
+		Set<Rect> faceKeys = resultMaps.keySet();
+		int faceNum = 1;
+
+		Rect minKey = null;
+
+		for (Rect faceKey : faceKeys) {
+			if (minKey == null) {
+				minKey = faceKey;
+				continue;
+			}
+			if (resultMaps.get(faceKey).get("average") < resultMaps.get(minKey).get("average"))
+				minKey = faceKey;
 		}
 
-		// tgtFaces.stream().parallel().forEach((tgtMat)->{
-		// List<Float> result = new ArrayList<>();
-		// srcMats.stream().parallel().forEach((srcMat)->{
-		// result.add(getMinOfDistance(srcMat, tgtMat));
-		// });
-		// });
+		for (Rect faceKey : faceKeys) {
+			BigDecimal average = new BigDecimal(resultMaps.get(faceKey).get("average").doubleValue());
+			String score = faceNum + ": " + average.setScale(1, RoundingMode.HALF_UP);
 
-		return resultsList;
+			if (faceKey.equals(minKey)) {
+				Imgproc.rectangle(targetMat, new Point(faceKey.x, faceKey.y),
+						new Point(faceKey.x + faceKey.width, faceKey.y + faceKey.height), new Scalar(0, 255, 0), 6);
+				Imgproc.putText(targetMat, score, new Point(faceKey.x, faceKey.y), 1, 5, new Scalar(0, 0, 255), 6);
+			} else {
+				Imgproc.rectangle(targetMat, new Point(faceKey.x, faceKey.y),
+						new Point(faceKey.x + faceKey.width, faceKey.y + faceKey.height), new Scalar(0, 200, 0), 3);
+				Imgproc.putText(targetMat, score, new Point(faceKey.x, faceKey.y), 1, 2, new Scalar(0, 0, 200), 3);
+			}
+
+			faceNum++;
+		}
+		return targetMat;
 	}
 
 	private static void createResourceMats() {
 		String directoryPath = ImageContoroller.RESOURCES_PATH + File.separator + "learning";
 		String regex = "^.*\\.jpg$";
 		srcMats = ImageContoroller.filesToMats(ImageContoroller.listFile(directoryPath, regex));
+
+		resourceMats = ImageContoroller.filesToMapOfMat(ImageContoroller.listFile(directoryPath, regex));
 	}
 
 	public static Float getMinOfDistance(Mat srcMat, Mat targetMat) {
@@ -93,7 +171,7 @@ public class Comparator {
 	}
 
 	private static Float calcMinOfDist(MatOfDMatch matches) {
-		float minOfDistance = 100000;
+		float minOfDistance = INICIAL_VALUE;
 		for (DMatch item : matches.toList()) {
 			minOfDistance = Math.min(minOfDistance, item.distance);
 		}

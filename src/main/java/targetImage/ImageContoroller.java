@@ -3,7 +3,9 @@ package targetImage;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -56,6 +58,14 @@ public class ImageContoroller {
 		List<Mat> mats = new ArrayList<>();
 		for (File file : files) {
 			mats.add(fileToMat(file));
+		}
+		return mats;
+	}
+
+	public static Map<String, Mat> filesToMapOfMat(List<File> files) {
+		Map<String, Mat> mats = new HashMap<>();
+		for (File file : files) {
+			mats.put(file.getName(), fileToMat(file));
 		}
 		return mats;
 	}
@@ -143,17 +153,27 @@ public class ImageContoroller {
 	// 画像ファイルから検出した顔のリストを取り出す
 	public static List<Mat> getFacesFromFile(File imageFile) {
 		Mat srcMat = fileToMat(imageFile);
-		return getFacesFromsrcMat(srcMat);
+		return getFaceListFromsrcMat(srcMat);
 	}
 
 	// srcMatから検出した顔のリストを取り出す
-	public static List<Mat> getFacesFromsrcMat(Mat srcMat) {
+	public static List<Mat> getFaceListFromsrcMat(Mat srcMat) {
 		MatOfRect faceDetections = detectFace(srcMat);
 		List<Mat> faceList = new ArrayList<>();
 		for (Rect rect : faceDetections.toArray()) {
 			faceList.add(new Mat(srcMat, rect));
 		}
 		return faceList;
+	}
+
+	// srcMatから検出した顔のマップを取り出す
+	public static Map<Rect, Mat> getFaceMapFromsrcMat(Mat srcMat) {
+		MatOfRect faceDetections = detectFace(srcMat);
+		Map<Rect, Mat> faceMap = new HashMap<>();
+		for (Rect rect : faceDetections.toArray()) {
+			faceMap.put(rect, new Mat(srcMat, rect));
+		}
+		return faceMap;
 	}
 
 	public static Mat detectFaceToAddEffect(Mat srcMat) {

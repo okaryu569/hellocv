@@ -1,8 +1,11 @@
 package main;
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import javafx.application.Platform;
@@ -19,6 +22,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Pair;
 import targetImage.Comparator;
+import targetImage.CompareResult;
 import targetImage.ImageContoroller;
 
 public class MainPaneController implements Initializable {
@@ -199,15 +203,21 @@ public class MainPaneController implements Initializable {
 	void onEffectMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Excute Comparison]");
 
-		List<List<Float>> resultList = Comparator.getResultList();
-		for (int i = 0; i < resultList.size(); i++) {
-			System.out.println("HelloCv :  →face " + (i + 1));
-			for (Float dist : resultList.get(i)) {
-				System.out.println("HelloCv :   Distance = " + dist);
+		CompareResult compareResult = Comparator.getCompareResult();
+
+		int faceNum = 1;
+		for (Map<String, Float> resultMap : compareResult.getResultList()) {
+			System.out.println("HelloCv :  →face " + faceNum);
+			BigDecimal average = new BigDecimal(resultMap.get("average").doubleValue());
+			System.out.println("Average : " + average.setScale(1, RoundingMode.HALF_UP));
+			for (String fileKey : resultMap.keySet()) {
+				if (fileKey.equals("average"))
+					continue;
+				System.out.println(" " + fileKey + " : " + String.valueOf(resultMap.get(fileKey)));
 			}
+			faceNum++;
 		}
-		WritableImage faceDetect = ImageContoroller.addRectangleToWRImage(Comparator.getCurrentMat());
-		mainImageView.setImage(faceDetect);
+		mainImageView.setImage(ImageContoroller.MatToWRImage(compareResult.getResultMat()));
 		System.out.println("HelloCv : [Finish Comparison]");
 	}
 
