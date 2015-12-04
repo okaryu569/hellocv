@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.opencv.core.DMatch;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
@@ -69,37 +69,18 @@ public class Comparator {
 				resultMap.put(srcKey, score);
 			});
 
-			Float tmp = 0F;
-			for (String srcKey : resultMap.keySet()) {
-				tmp += resultMap.get(srcKey);
-			}
-			Float average = tmp / resourceMats.size();
+			Float average = srcKeySet.stream()
+					.collect(Collectors.averagingDouble(key -> resultMap.get(key).doubleValue())).floatValue();
+
 			if (average < 1000F) {
 				resultMap.put("average", average);
 				resultMaps.put(targetKey, resultMap);
 			}
 		});
-
+				
 		Mat resultMat = createResultMat(targetMat, resultMaps);
 
 		return new CompareResult(resultMaps, resultMat);
-
-		// for (Rect targetKey : targetKeySet) {
-		// Mat targetFace = targetFaces.get(targetKey);
-		// Map<String, Float> resultMap = new HashMap<>();
-		// Set<String> srcKeySet = resourceMats.keySet();
-		// Float tmp = 0F;
-		//
-		// for (String srcKey : srcKeySet) {
-		// Float score = getMinOfDistance(resourceMats.get(srcKey), targetFace);
-		// resultMap.put(srcKey, score);
-		// tmp += score;
-		// }
-		// Float average = tmp / resourceMats.size();
-		// resultMap.put("average", average);
-		//
-		// resultMaps.put(targetKey, resultMap);
-		// }
 	}
 
 	private static Mat createResultMat(Mat targetMat, Map<Rect, Map<String, Float>> resultMaps) {
@@ -107,16 +88,10 @@ public class Comparator {
 		Set<Rect> faceKeys = resultMaps.keySet();
 		int faceNum = 1;
 
-		Rect minKey = null;
-
-		for (Rect faceKey : faceKeys) {
-			if (minKey == null) {
-				minKey = faceKey;
-				continue;
-			}
-			if (resultMaps.get(faceKey).get("average") < resultMaps.get(minKey).get("average"))
-				minKey = faceKey;
-		}
+		Rect minKey = faceKeys.stream().collect(Collectors.minBy((key1, key2) -> {
+			Float result = resultMaps.get(key1).get("average") - resultMaps.get(key2).get("average");
+			return result.intValue();
+		})).orElse(new Rect());
 
 		for (Rect faceKey : faceKeys) {
 			BigDecimal average = new BigDecimal(resultMaps.get(faceKey).get("average").doubleValue());
@@ -171,11 +146,16 @@ public class Comparator {
 	}
 
 	private static Float calcMinOfDist(MatOfDMatch matches) {
-		float minOfDistance = INICIAL_VALUE;
-		for (DMatch item : matches.toList()) {
-			minOfDistance = Math.min(minOfDistance, item.distance);
-		}
-		return minOfDistance;
+		Double result = matches.toList().stream().mapToDouble(item -> Float.valueOf(item.distance).doubleValue()).min()
+				.orElse(10000.0);
+		return result.floatValue();
+
+		// float minOfDistance = INICIAL_VALUE;
+		// for (DMatch item : matches.toList()) {
+		// minOfDistance = Math.min(minOfDistance, item.distance);
+		// }
+		//
+		// return minOfDistance;
 	}
 
 }

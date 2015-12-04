@@ -16,6 +16,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
@@ -58,6 +59,9 @@ public class MainPaneController implements Initializable {
 
 	@FXML
 	private ImageView mainImageView;
+
+	@FXML
+	private TextArea textArea;
 
 	@FXML
 	private ImageView srcImageView01;
@@ -202,19 +206,38 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onEffectMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Excute Comparison]");
+		textArea.clear();
 
 		CompareResult compareResult = Comparator.getCompareResult();
 
 		int faceNum = 1;
+
+		// IntStream.range(1,
+		// compareResult.getResultList().size()).forEach(faceNumber -> {
+		//
+		// });
+
 		for (Map<String, Float> resultMap : compareResult.getResultList()) {
-			System.out.println("HelloCv :  →face " + faceNum);
+			System.out.println("HelloCv :  face" + faceNum);
+			textArea.appendText("HelloCv :  face" + faceNum + "\n");
+
 			BigDecimal average = new BigDecimal(resultMap.get("average").doubleValue());
 			System.out.println("Average : " + average.setScale(1, RoundingMode.HALF_UP));
-			for (String fileKey : resultMap.keySet()) {
-				if (fileKey.equals("average"))
-					continue;
+			textArea.appendText("  face" + faceNum + "  Average:" + average.setScale(1, RoundingMode.HALF_UP) + "\n");
+
+			resultMap.keySet().stream().filter(key -> !key.equals("average")).forEach(fileKey -> {
 				System.out.println(" " + fileKey + " : " + String.valueOf(resultMap.get(fileKey)));
-			}
+				textArea.appendText("\t" + fileKey + ": " + String.valueOf(resultMap.get(fileKey)) + "\n");
+			});
+
+			// for (String fileKey : resultMap.keySet()) {
+			// if (fileKey.equals("average"))
+			// continue;
+			// System.out.println(" " + fileKey + " : " +
+			// String.valueOf(resultMap.get(fileKey)));
+			// textArea.appendText("\t" + fileKey + ": " +
+			// String.valueOf(resultMap.get(fileKey)) + "\n");
+			// }
 			faceNum++;
 		}
 		mainImageView.setImage(ImageContoroller.MatToWRImage(compareResult.getResultMat()));

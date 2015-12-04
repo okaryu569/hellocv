@@ -132,8 +132,10 @@ public class ImageContoroller {
 	}
 
 	private static MatOfRect detectFace(Mat srcMat) {
+//		CascadeClassifier faceDetector = new CascadeClassifier(
+//				ImageContoroller.class.getClassLoader().getResource("lbpcascade_frontalface.xml").getPath());
 		CascadeClassifier faceDetector = new CascadeClassifier(
-				ImageContoroller.class.getClassLoader().getResource("lbpcascade_frontalface.xml").getPath());
+				ImageContoroller.class.getClassLoader().getResource("haarcascade_frontalface_alt.xml").getPath());
 		MatOfRect faceDetections = new MatOfRect();
 		faceDetector.detectMultiScale(srcMat, faceDetections);
 		return faceDetections;
