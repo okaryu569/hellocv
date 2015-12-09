@@ -19,8 +19,6 @@ public class Main extends Application {
 		Thread.currentThread().setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
-				// TODO Auto-generated method stub :ここに Logger とかをセット
-				// スレッドがキャッチできない例外をキャッチしてくれる
 				System.out.println("キャッチできない例外発生");
 				e.printStackTrace();
 			}
@@ -48,8 +46,6 @@ public class Main extends Application {
 	public static void main(String[] args) {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		Application.launch(args);
-		// System.out.println("Hello, OpenCV");
-		// new DetectFaceDemo().run();
 	}
 
 }

@@ -41,11 +41,27 @@
       </MenuBar>
       <HBox prefHeight="588.0" prefWidth="800.0" VBox.vgrow="ALWAYS">
          <children>
-            <ScrollPane fx:id="mainImagePane" fitToHeight="true" fitToWidth="true" HBox.hgrow="ALWAYS">
-               <content>
-                  <ImageView fx:id="mainImageView" pickOnBounds="true" preserveRatio="true" />
-               </content>
-            </ScrollPane>
+            <VBox HBox.hgrow="ALWAYS">
+               <children>
+                  <ScrollPane fx:id="mainImagePane" fitToHeight="true" fitToWidth="true" prefHeight="225.0" prefWidth="646.0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                     <content>
+                        <ImageView fx:id="mainImageView" pickOnBounds="true" preserveRatio="true" />
+                     </content>
+                  </ScrollPane>
+                  <TableView fx:id="resultTableView" prefHeight="200.0" prefWidth="200.0">
+                    <columns>
+                      <TableColumn fx:id="faceNumColumn" prefWidth="75.0" text="Face No." />
+                      <TableColumn fx:id="src01Column" prefWidth="75.0" text="src01" />
+                        <TableColumn fx:id="src02Column" prefWidth="75.0" text="src02" />
+                        <TableColumn fx:id="src03Column" prefWidth="75.0" text="src03" />
+                        <TableColumn fx:id="src04Column" prefWidth="75.0" text="src04" />
+                        <TableColumn fx:id="src05Column" prefWidth="75.0" text="src05" />
+                        <TableColumn fx:id="src06Column" prefWidth="75.0" text="src06" />
+                        <TableColumn fx:id="averageColumn" prefWidth="75.0" text="Average" />
+                    </columns>
+                  </TableView>
+               </children>
+            </VBox>
             <Separator orientation="VERTICAL" prefHeight="577.0" prefWidth="14.0" />
             <ScrollPane fx:id="srcImagePane" minWidth="140.0" prefHeight="577.0" prefWidth="140.0">
                <content>

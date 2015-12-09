@@ -4,19 +4,31 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.FloatProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.VBox;
@@ -61,9 +73,6 @@ public class MainPaneController implements Initializable {
 	private ImageView mainImageView;
 
 	@FXML
-	private TextArea textArea;
-
-	@FXML
 	private ImageView srcImageView01;
 
 	@FXML
@@ -93,21 +102,62 @@ public class MainPaneController implements Initializable {
 	@FXML
 	private Label srcImageLabel05;
 
-	// private TargetImageData targetImageData;
+	@FXML
+	private TableView<ResultRow> resultTableView;
+	
+	@FXML
+	private TableColumn<ResultRow,String> faceNumColumn;
 
+	@FXML
+	private TableColumn<ResultRow,Float> src01Column;
+
+	@FXML
+	private TableColumn<ResultRow,Float> src02Column;
+
+	@FXML
+	private TableColumn<ResultRow,Float> src03Column;
+
+	@FXML
+	private TableColumn<ResultRow,Float> src04Column;
+
+	@FXML
+	private TableColumn<ResultRow,Float> src05Column;
+
+	@FXML
+	private TableColumn<ResultRow,Float> src06Column;
+
+	
+	@FXML
+	private TableColumn<ResultRow,BigDecimal> averageColumn;
+	
+	private ObservableList<ResultRow> resultsTableRows = FXCollections.observableArrayList();
+
+	
+	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		this.setDisableToMenuItems(true);
 		this.setSrcImages();
+		this.setResultTableView();
+				
 		System.out.println("HelloCv : 起動完了");
+	}
+	
+	private void setResultTableView(){	
+		faceNumColumn.setCellValueFactory(new PropertyValueFactory<>("faceName"));
+		src01Column.setCellValueFactory(new PropertyValueFactory<>("score0fSrc01"));
+		src02Column.setCellValueFactory(new PropertyValueFactory<>("score0fSrc02"));
+		src03Column.setCellValueFactory(new PropertyValueFactory<>("score0fSrc03"));
+		src04Column.setCellValueFactory(new PropertyValueFactory<>("score0fSrc04"));
+		src05Column.setCellValueFactory(new PropertyValueFactory<>("score0fSrc05"));
+		src06Column.setCellValueFactory(new PropertyValueFactory<>("score0fSrc06"));
+		averageColumn.setCellValueFactory(new PropertyValueFactory<>("average"));
 	}
 
 	private void setDisableToMenuItems(boolean bool) {
 		MenuItem menuItems[] = { saveMenuItem, saveAsMenuItem, faceDetectMenuItem, edgeDetectMenuItem, effectMenuItem,
 				fitScreenMenuItem, originalSizeMenuItem };
-		for (MenuItem item : menuItems) {
-			item.setDisable(bool);
-		}
+		Arrays.asList(menuItems).stream().forEach(item -> item.setDisable(bool));
 	}
 
 	private void setSrcImages() {
@@ -134,7 +184,6 @@ public class MainPaneController implements Initializable {
 			return;
 
 		Comparator.setTargetImageData(file);
-		// targetImageData = new TargetImageData(file);
 		mainImageView.setImage(ImageContoroller.MatToWRImage(Comparator.getCurrentMat()));
 		this.setDisableToMenuItems(false);
 		System.out.println("HelloCv : → Open " + file.getName());
@@ -206,42 +255,104 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onEffectMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Excute Comparison]");
-		textArea.clear();
 
 		CompareResult compareResult = Comparator.getCompareResult();
 
 		int faceNum = 1;
-
-		// IntStream.range(1,
-		// compareResult.getResultList().size()).forEach(faceNumber -> {
-		//
-		// });
-
 		for (Map<String, Float> resultMap : compareResult.getResultList()) {
-			System.out.println("HelloCv :  face" + faceNum);
-			textArea.appendText("HelloCv :  face" + faceNum + "\n");
-
-			BigDecimal average = new BigDecimal(resultMap.get("average").doubleValue());
-			System.out.println("Average : " + average.setScale(1, RoundingMode.HALF_UP));
-			textArea.appendText("  face" + faceNum + "  Average:" + average.setScale(1, RoundingMode.HALF_UP) + "\n");
-
-			resultMap.keySet().stream().filter(key -> !key.equals("average")).forEach(fileKey -> {
-				System.out.println(" " + fileKey + " : " + String.valueOf(resultMap.get(fileKey)));
-				textArea.appendText("\t" + fileKey + ": " + String.valueOf(resultMap.get(fileKey)) + "\n");
-			});
-
-			// for (String fileKey : resultMap.keySet()) {
-			// if (fileKey.equals("average"))
-			// continue;
-			// System.out.println(" " + fileKey + " : " +
-			// String.valueOf(resultMap.get(fileKey)));
-			// textArea.appendText("\t" + fileKey + ": " +
-			// String.valueOf(resultMap.get(fileKey)) + "\n");
-			// }
+			ResultRow row = new ResultRow(faceNum, resultMap);
+			resultsTableRows.add(row);
 			faceNum++;
 		}
+		resultTableView.setItems(resultsTableRows);
+
 		mainImageView.setImage(ImageContoroller.MatToWRImage(compareResult.getResultMat()));
 		System.out.println("HelloCv : [Finish Comparison]");
+	}
+	
+	public static class ResultRow{
+		private StringProperty faceName = new SimpleStringProperty();
+		private FloatProperty score0fSrc01 = new SimpleFloatProperty();
+		private FloatProperty score0fSrc02 = new SimpleFloatProperty();
+		private FloatProperty score0fSrc03 = new SimpleFloatProperty();
+		private FloatProperty score0fSrc04 = new SimpleFloatProperty();
+		private FloatProperty score0fSrc05 = new SimpleFloatProperty();
+		private FloatProperty score0fSrc06 = new SimpleFloatProperty();
+		private DoubleProperty average = new SimpleDoubleProperty();
+		
+		public ResultRow(int faceNum, Map<String, Float> resultMap) {
+			this.setFaceName(new String("Face "+faceNum));
+			this.setScores(resultMap);
+		}
+		
+		private void setScores(Map<String, Float> resultMap){
+			this.average.set(BigDecimal.valueOf(resultMap.get("average").doubleValue()).setScale(1, RoundingMode.HALF_UP).doubleValue());			
+			System.out.println("FaceName: "+this.faceName.get()+"  Average: " + this.average.get());
+			
+			List<Float> scores = resultMap.keySet().stream()
+					.filter(key -> !key.equals("average"))
+					.peek(key -> {
+						System.out.println(" " + key + " : " + String.valueOf(resultMap.get(key)));
+					})
+					.map(key -> resultMap.get(key))
+					.collect(Collectors.toList());
+			this.score0fSrc01.set(scores.get(0));
+			this.score0fSrc02.set(scores.get(1));
+			this.score0fSrc03.set(scores.get(2));
+			this.score0fSrc04.set(scores.get(3));
+			this.score0fSrc05.set(scores.get(4));
+			this.score0fSrc06.set(scores.get(5));
+		}
+		
+		public String getFaceName() {
+	        return faceName.get();
+	    }
+		public void setFaceName(String faceName) {
+	        this.faceName.set(faceName);
+	    }
+		public Float getScore0fSrc01() {
+			return score0fSrc01.get();
+		}
+		public void setScore0fSrc01(Float score0fSrc01) {
+			this.score0fSrc01.set(score0fSrc01);
+		}
+		public Float getScore0fSrc02() {
+			return score0fSrc02.get();
+		}
+		public void setScore0fSrc02(Float score0fSrc02) {
+			this.score0fSrc02.set(score0fSrc02);
+		}
+		public Float getScore0fSrc03() {
+			return score0fSrc03.get();
+		}
+		public void setScore0fSrc03(Float score0fSrc03) {
+			this.score0fSrc03.set(score0fSrc03);
+		}
+		public Float getScore0fSrc04() {
+			return score0fSrc04.get();
+		}
+		public void setScore0fSrc04(Float score0fSrc04) {
+			this.score0fSrc04.set(score0fSrc04);
+		}
+		public Float getScore0fSrc05() {
+			return score0fSrc05.get();
+		}
+		public void setScore0fSrc05(Float score0fSrc05) {
+			this.score0fSrc05.set(score0fSrc05);
+		}
+		public Float getScore0fSrc06() {
+			return score0fSrc06.get();
+		}
+		public void setScore0fSrc06(Float score0fSrc06) {
+			this.score0fSrc06.set(score0fSrc06);
+		}
+		public Double getAverage() {
+			return average.get();
+		}
+		public void setAverage(Double average) {
+			this.average.set(average);
+		}
+
 	}
 
 	@FXML
