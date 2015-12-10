@@ -45,11 +45,6 @@ public class Comparator {
 		return targetImageData.getCurrentMat();
 	}
 
-	/**
-	 * それぞれの比較元と、比較対象から検出した顔部分との比較結果のスコアを List として返す．
-	 * 
-	 * @return List<List<Float>>
-	 */
 	public static CompareResult getCompareResult() {
 		createResourceMats();
 
@@ -57,22 +52,23 @@ public class Comparator {
 		Map<Rect, Mat> targetFaces = ImageContoroller.getFaceMapFromsrcMat(targetMat);
 		Set<Rect> targetKeySet = targetFaces.keySet();
 
-		Map<Rect, Map<String, Float>> resultMaps = new HashMap<>();
+		Map<Rect, Map<String, Double>> resultMaps = new HashMap<>();
 
 		targetKeySet.stream().parallel().forEach((targetKey) -> {
 			Mat targetFace = targetFaces.get(targetKey);
-			Map<String, Float> resultMap = new HashMap<>();
+			Map<String, Double> resultMap = new HashMap<>();
 			Set<String> srcKeySet = resourceMats.keySet();
 
 			srcKeySet.stream().parallel().forEach((srcKey) -> {
-				Float score = getMinOfDistance(resourceMats.get(srcKey), targetFace);
-				resultMap.put(srcKey, score);
+				Double minDistance = getMinOfDistance(resourceMats.get(srcKey), targetFace);
+//				Double score = BigDecimal.valueOf(1000D/minDistance).setScale(1, RoundingMode.HALF_UP).doubleValue();
+				resultMap.put(srcKey, 1000D/minDistance);
 			});
+			
 
-			Float average = srcKeySet.stream()
-					.collect(Collectors.averagingDouble(key -> resultMap.get(key).doubleValue())).floatValue();
+			Double average = srcKeySet.stream().collect(Collectors.averagingDouble(key -> resultMap.get(key)));
 
-			if (average < 1000F) {
+			if (average > 1) {
 				resultMap.put("average", average);
 				resultMaps.put(targetKey, resultMap);
 			}
@@ -83,30 +79,29 @@ public class Comparator {
 		return new CompareResult(resultMaps, resultMat);
 	}
 
-	private static Mat createResultMat(Mat targetMat, Map<Rect, Map<String, Float>> resultMaps) {
-
+	private static Mat createResultMat(Mat targetMat, Map<Rect, Map<String, Double>> resultMaps) {
 		Set<Rect> faceKeys = resultMaps.keySet();
-		int faceNum = 1;
-
-		Rect minKey = faceKeys.stream().collect(Collectors.minBy((key1, key2) -> {
-			Float result = resultMaps.get(key1).get("average") - resultMaps.get(key2).get("average");
+		
+		Rect maxKey = faceKeys.stream().collect(Collectors.maxBy((key1, key2) -> {
+			Double result = (resultMaps.get(key1).get("average") - resultMaps.get(key2).get("average")) * 1000;
 			return result.intValue();
 		})).orElse(new Rect());
-
+		
+		int faceNum = 1;
 		for (Rect faceKey : faceKeys) {
-			BigDecimal average = new BigDecimal(resultMaps.get(faceKey).get("average").doubleValue());
-			String score = faceNum + ": " + average.setScale(1, RoundingMode.HALF_UP);
-
-			if (faceKey.equals(minKey)) {
+			String scoreText =  BigDecimal.valueOf(resultMaps.get(faceKey).get("average")).setScale(1, RoundingMode.HALF_UP).toString();
+		
+			if (faceKey.equals(maxKey)) {
 				Imgproc.rectangle(targetMat, new Point(faceKey.x, faceKey.y),
 						new Point(faceKey.x + faceKey.width, faceKey.y + faceKey.height), new Scalar(0, 255, 0), 6);
-				Imgproc.putText(targetMat, score, new Point(faceKey.x, faceKey.y), 1, 5, new Scalar(0, 0, 255), 6);
+				Imgproc.putText(targetMat, String.valueOf(faceNum), new Point(faceKey.x, faceKey.y), 1, 5, new Scalar(255, 255, 0), 6);
+				Imgproc.putText(targetMat, scoreText, new Point(faceKey.x + faceKey.width, faceKey.y + faceKey.height), 1, 5, new Scalar(0, 0, 255), 6);
 			} else {
 				Imgproc.rectangle(targetMat, new Point(faceKey.x, faceKey.y),
 						new Point(faceKey.x + faceKey.width, faceKey.y + faceKey.height), new Scalar(0, 200, 0), 3);
-				Imgproc.putText(targetMat, score, new Point(faceKey.x, faceKey.y), 1, 2, new Scalar(0, 0, 200), 3);
+				Imgproc.putText(targetMat, String.valueOf(faceNum), new Point(faceKey.x, faceKey.y), 1, 2, new Scalar(200, 200, 0), 4);
+				Imgproc.putText(targetMat, scoreText, new Point(faceKey.x + faceKey.width, faceKey.y + faceKey.height), 1, 2, new Scalar(0, 0, 255), 3);
 			}
-
 			faceNum++;
 		}
 		return targetMat;
@@ -120,12 +115,11 @@ public class Comparator {
 		resourceMats = ImageContoroller.filesToMapOfMat(ImageContoroller.listFile(directoryPath, regex));
 	}
 
-	public static Float getMinOfDistance(Mat srcMat, Mat targetMat) {
+	public static Double getMinOfDistance(Mat srcMat, Mat targetMat) {
 		Mat descriptionOfSrc = calcDescriptor(srcMat);
 		Mat descriptionOfTarget = calcDescriptor(targetMat);
 		MatOfDMatch matches = matchDescriptors(descriptionOfSrc, descriptionOfTarget);
-		Float minOfDistance = calcMinOfDist(matches);
-		return minOfDistance;
+		return calcMinOfDist(matches).doubleValue();
 	}
 
 	private static Mat calcDescriptor(Mat srcMat) {

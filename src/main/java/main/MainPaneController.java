@@ -4,6 +4,7 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -12,14 +13,12 @@ import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.FloatProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -58,10 +57,7 @@ public class MainPaneController implements Initializable {
 	private MenuItem faceDetectMenuItem;
 
 	@FXML
-	private MenuItem edgeDetectMenuItem;
-
-	@FXML
-	private MenuItem effectMenuItem;
+	private MenuItem compareMenuItem;
 
 	@FXML
 	private MenuItem fitScreenMenuItem;
@@ -125,14 +121,9 @@ public class MainPaneController implements Initializable {
 
 	@FXML
 	private TableColumn<ResultRow,Float> src06Column;
-
 	
 	@FXML
 	private TableColumn<ResultRow,BigDecimal> averageColumn;
-	
-	private ObservableList<ResultRow> resultsTableRows = FXCollections.observableArrayList();
-
-	
 	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
@@ -155,7 +146,7 @@ public class MainPaneController implements Initializable {
 	}
 
 	private void setDisableToMenuItems(boolean bool) {
-		MenuItem menuItems[] = { saveMenuItem, saveAsMenuItem, faceDetectMenuItem, edgeDetectMenuItem, effectMenuItem,
+		MenuItem menuItems[] = { saveMenuItem, saveAsMenuItem, faceDetectMenuItem, compareMenuItem,
 				fitScreenMenuItem, originalSizeMenuItem };
 		Arrays.asList(menuItems).stream().forEach(item -> item.setDisable(bool));
 	}
@@ -163,8 +154,7 @@ public class MainPaneController implements Initializable {
 	private void setSrcImages() {
 		String directoryPath = ImageContoroller.RESOURCES_PATH + File.separator + "learning";
 		String regex = "^.*\\.jpg$";
-		List<Pair<File, WritableImage>> srcImages = ImageContoroller
-				.filesToImages(ImageContoroller.listFile(directoryPath, regex));
+		List<Pair<File, WritableImage>> srcImages = ImageContoroller.filesToImages(ImageContoroller.listFile(directoryPath, regex));
 		ImageView srcImgViewList[] = { srcImageView01, srcImageView02, srcImageView03, srcImageView04,
 				srcImageView05, };
 		Label srcImgLabelList[] = { srcImageLabel01, srcImageLabel02, srcImageLabel03, srcImageLabel04,
@@ -177,8 +167,8 @@ public class MainPaneController implements Initializable {
 	}
 
 	@FXML
-	void onOpenMenuItemFired(ActionEvent event) {
-		System.out.println("HelloCv : [Open]");
+	void onSelectTargetMenuItemFired(ActionEvent event) {
+		System.out.println("HelloCv : [Select Target Image]");
 		File file = this.selectOpenFile();
 		if (file == null)
 			return;
@@ -241,30 +231,27 @@ public class MainPaneController implements Initializable {
 	}
 
 	@FXML
-	void onEdgeDetectMenuItemFired(ActionEvent event) {
-		System.out.println("HelloCv : [EdgeDetect]");
-		// Mat resultOfEffect =
-		// ImageContoroller.edgeDetect(targetImageData.getCurrentMat());
-		// targetImageData.getImageDataLog().add(resultOfEffect);
-		// mainImageView.setImage(targetImageData.getWRImage());
+	void onSelectSourceMenuItemFired(ActionEvent event) {
+		System.out.println("HelloCv : [Select Source Image]");
 	}
 
 	/**
 	 * Effect テンプレ
 	 */
 	@FXML
-	void onEffectMenuItemFired(ActionEvent event) {
+	void onCompareMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Excute Comparison]");
-
+		resultTableView.getItems().clear();
+		
 		CompareResult compareResult = Comparator.getCompareResult();
 
+		List<ResultRow> rows = new ArrayList<>();		
 		int faceNum = 1;
-		for (Map<String, Float> resultMap : compareResult.getResultList()) {
-			ResultRow row = new ResultRow(faceNum, resultMap);
-			resultsTableRows.add(row);
+		for (Map<String, Double> resultMap : compareResult.getResultList()) {
+			rows.add(new ResultRow(faceNum, resultMap));
 			faceNum++;
-		}
-		resultTableView.setItems(resultsTableRows);
+		}		
+		resultTableView.getItems().addAll(rows);
 
 		mainImageView.setImage(ImageContoroller.MatToWRImage(compareResult.getResultMat()));
 		System.out.println("HelloCv : [Finish Comparison]");
@@ -272,30 +259,32 @@ public class MainPaneController implements Initializable {
 	
 	public static class ResultRow{
 		private StringProperty faceName = new SimpleStringProperty();
-		private FloatProperty score0fSrc01 = new SimpleFloatProperty();
-		private FloatProperty score0fSrc02 = new SimpleFloatProperty();
-		private FloatProperty score0fSrc03 = new SimpleFloatProperty();
-		private FloatProperty score0fSrc04 = new SimpleFloatProperty();
-		private FloatProperty score0fSrc05 = new SimpleFloatProperty();
-		private FloatProperty score0fSrc06 = new SimpleFloatProperty();
+		private DoubleProperty score0fSrc01 = new SimpleDoubleProperty();
+		private DoubleProperty score0fSrc02 = new SimpleDoubleProperty();
+		private DoubleProperty score0fSrc03 = new SimpleDoubleProperty();
+		private DoubleProperty score0fSrc04 = new SimpleDoubleProperty();
+		private DoubleProperty score0fSrc05 = new SimpleDoubleProperty();
+		private DoubleProperty score0fSrc06 = new SimpleDoubleProperty();
 		private DoubleProperty average = new SimpleDoubleProperty();
 		
-		public ResultRow(int faceNum, Map<String, Float> resultMap) {
+		public ResultRow(int faceNum, Map<String, Double> resultMap) {
 			this.setFaceName(new String("Face "+faceNum));
 			this.setScores(resultMap);
 		}
 		
-		private void setScores(Map<String, Float> resultMap){
-			this.average.set(BigDecimal.valueOf(resultMap.get("average").doubleValue()).setScale(1, RoundingMode.HALF_UP).doubleValue());			
+		private void setScores(Map<String, Double> resultMap){
+			this.average.set(BigDecimal.valueOf(resultMap.get("average")).setScale(1, RoundingMode.HALF_UP).doubleValue());			
 			System.out.println("FaceName: "+this.faceName.get()+"  Average: " + this.average.get());
-			
-			List<Float> scores = resultMap.keySet().stream()
+						
+			List<Double> scores = resultMap.keySet().stream()
 					.filter(key -> !key.equals("average"))
-					.peek(key -> {
-						System.out.println(" " + key + " : " + String.valueOf(resultMap.get(key)));
+					.map(key -> {
+						Double score = BigDecimal.valueOf(resultMap.get(key)).setScale(1, RoundingMode.HALF_UP).doubleValue();
+						System.out.println(" " + key + " : " + score);
+						return score;
 					})
-					.map(key -> resultMap.get(key))
 					.collect(Collectors.toList());
+			
 			this.score0fSrc01.set(scores.get(0));
 			this.score0fSrc02.set(scores.get(1));
 			this.score0fSrc03.set(scores.get(2));
@@ -310,37 +299,37 @@ public class MainPaneController implements Initializable {
 		public void setFaceName(String faceName) {
 	        this.faceName.set(faceName);
 	    }
-		public Float getScore0fSrc01() {
+		public Double getScore0fSrc01() {
 			return score0fSrc01.get();
 		}
 		public void setScore0fSrc01(Float score0fSrc01) {
 			this.score0fSrc01.set(score0fSrc01);
 		}
-		public Float getScore0fSrc02() {
+		public Double getScore0fSrc02() {
 			return score0fSrc02.get();
 		}
 		public void setScore0fSrc02(Float score0fSrc02) {
 			this.score0fSrc02.set(score0fSrc02);
 		}
-		public Float getScore0fSrc03() {
+		public Double getScore0fSrc03() {
 			return score0fSrc03.get();
 		}
 		public void setScore0fSrc03(Float score0fSrc03) {
 			this.score0fSrc03.set(score0fSrc03);
 		}
-		public Float getScore0fSrc04() {
+		public Double getScore0fSrc04() {
 			return score0fSrc04.get();
 		}
 		public void setScore0fSrc04(Float score0fSrc04) {
 			this.score0fSrc04.set(score0fSrc04);
 		}
-		public Float getScore0fSrc05() {
+		public Double getScore0fSrc05() {
 			return score0fSrc05.get();
 		}
 		public void setScore0fSrc05(Float score0fSrc05) {
 			this.score0fSrc05.set(score0fSrc05);
 		}
-		public Float getScore0fSrc06() {
+		public Double getScore0fSrc06() {
 			return score0fSrc06.get();
 		}
 		public void setScore0fSrc06(Float score0fSrc06) {

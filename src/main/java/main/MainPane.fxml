@@ -13,7 +13,8 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-              <MenuItem mnemonicParsing="false" onAction="#onOpenMenuItemFired" text="Open..." />
+              <MenuItem mnemonicParsing="false" onAction="#onSelectTargetMenuItemFired" text="Target..." />
+                  <MenuItem mnemonicParsing="false" onAction="#onSelectSourceMenuItemFired" text="Source..." />
                   <MenuItem fx:id="saveMenuItem" mnemonicParsing="false" onAction="#onSaveMenuItemFired" text="Save" />
                   <MenuItem fx:id="saveAsMenuItem" mnemonicParsing="false" onAction="#onSaveAsMenuItemFired" text="Save As..." />
                   <MenuItem mnemonicParsing="false" onAction="#onQuitMenuItemFired" text="Quit" />
@@ -22,8 +23,7 @@
           <Menu mnemonicParsing="false" text="Edit">
             <items>
               <MenuItem fx:id="faceDetectMenuItem" mnemonicParsing="false" onAction="#onFaceDetectMenuItemFired" text="Face Ditection" />
-                  <MenuItem fx:id="edgeDetectMenuItem" mnemonicParsing="false" onAction="#onEdgeDetectMenuItemFired" text="Edge Ditection" />
-                  <MenuItem fx:id="effectMenuItem" mnemonicParsing="false" onAction="#onEffectMenuItemFired" text="Effect Template" />
+                  <MenuItem fx:id="compareMenuItem" mnemonicParsing="false" onAction="#onCompareMenuItemFired" text="Compare" />
             </items>
           </Menu>
             <Menu mnemonicParsing="false" text="View">
@@ -48,7 +48,7 @@
                         <ImageView fx:id="mainImageView" pickOnBounds="true" preserveRatio="true" />
                      </content>
                   </ScrollPane>
-                  <TableView fx:id="resultTableView" prefHeight="200.0" prefWidth="200.0">
+                  <TableView fx:id="resultTableView" prefHeight="112.0" prefWidth="646.0">
                     <columns>
                       <TableColumn fx:id="faceNumColumn" prefWidth="75.0" text="Face No." />
                       <TableColumn fx:id="src01Column" prefWidth="75.0" text="src01" />
