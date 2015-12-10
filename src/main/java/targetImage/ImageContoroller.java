@@ -141,7 +141,6 @@ public class ImageContoroller {
 		return faceDetections;
 	}
 
-	//
 	public static void getSourceFaceImage(File imageFile) {
 		List<Mat> faceList = getFacesFromFile(imageFile);
 		if (faceList.toArray().length != 1) {

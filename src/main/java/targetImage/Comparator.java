@@ -61,10 +61,8 @@ public class Comparator {
 
 			srcKeySet.stream().parallel().forEach((srcKey) -> {
 				Double minDistance = getMinOfDistance(resourceMats.get(srcKey), targetFace);
-//				Double score = BigDecimal.valueOf(1000D/minDistance).setScale(1, RoundingMode.HALF_UP).doubleValue();
 				resultMap.put(srcKey, 1000D/minDistance);
 			});
-			
 
 			Double average = srcKeySet.stream().collect(Collectors.averagingDouble(key -> resultMap.get(key)));
 
@@ -119,7 +117,7 @@ public class Comparator {
 		Mat descriptionOfSrc = calcDescriptor(srcMat);
 		Mat descriptionOfTarget = calcDescriptor(targetMat);
 		MatOfDMatch matches = matchDescriptors(descriptionOfSrc, descriptionOfTarget);
-		return calcMinOfDist(matches).doubleValue();
+		return calcMinOfDist(matches);
 	}
 
 	private static Mat calcDescriptor(Mat srcMat) {
@@ -139,17 +137,10 @@ public class Comparator {
 		return matches;
 	}
 
-	private static Float calcMinOfDist(MatOfDMatch matches) {
-		Double result = matches.toList().stream().mapToDouble(item -> Float.valueOf(item.distance).doubleValue()).min()
-				.orElse(10000.0);
-		return result.floatValue();
-
-		// float minOfDistance = INICIAL_VALUE;
-		// for (DMatch item : matches.toList()) {
-		// minOfDistance = Math.min(minOfDistance, item.distance);
-		// }
-		//
-		// return minOfDistance;
+	private static Double calcMinOfDist(MatOfDMatch matches) {
+		return matches.toList().stream()
+				.mapToDouble(item -> Float.valueOf(item.distance).doubleValue())
+				.min().orElse(10000D);
 	}
 
 }
