@@ -25,16 +25,14 @@ public class Comparator {
 
 	private static final Float INICIAL_VALUE = 100000.0F;
 
-//	private static List<Mat> srcMats;
-	private static ImageData targetImageData;
-
-	private static Map<String, Mat> resourceMats;
+	private ImageData targetImageData;
+	private Map<String, Mat> resourceMats;
 
 	/**
 	 * 比較対象の ImageData を File から設定する．
 	 */
-	public static void setTargetImageData(File targetFile) {
-		targetImageData = new ImageData(targetFile);
+	public void setTargetImageData(File targetFile) {
+		this.targetImageData = new ImageData(targetFile);
 	}
 
 	/**
@@ -42,11 +40,11 @@ public class Comparator {
 	 * 
 	 * @return Mat
 	 */
-	public static Mat getCurrentMat() {
+	public Mat getCurrentMat() {
 		return targetImageData.getCurrentMat();
 	}
 
-	public static CompareResult getCompareResult() {
+	public CompareResult getCompareResult() {
 //		createResourceMats();
 
 		Mat targetMat = targetImageData.getCurrentMat();
@@ -111,7 +109,7 @@ public class Comparator {
 		return targetMat;
 	}
 
-	public static void createResourceMats(List<File> srcFiles) {
+	public void setResourceMats(List<File> srcFiles) {
 		String directoryPath = ImageContoroller.RESOURCES_PATH + File.separator + "learning";
 		String regex = "^.*\\.jpg$";
 //		srcMats = ImageContoroller.filesToMats(ImageContoroller.listFile(directoryPath, regex));
@@ -120,7 +118,14 @@ public class Comparator {
 //		resourceMats = ImageContoroller.filesToMapOfMat(srcFiles);
 	}
 
-	public static Double getMinOfDistance(Mat srcMat, Mat targetMat) {
+	public void setResourceMats() {
+		String directoryPath = ImageContoroller.RESOURCES_PATH + File.separator + "learning";
+		String regex = "^.*\\.jpg$";
+
+		resourceMats = ImageContoroller.filesToMapOfMat(ImageContoroller.listFile(directoryPath, regex));
+	}
+	
+	private Double getMinOfDistance(Mat srcMat, Mat targetMat) {
 		Mat descriptionOfSrc = calcDescriptor(srcMat);
 		Mat descriptionOfTarget = calcDescriptor(targetMat);
 		MatOfDMatch matches = matchDescriptors(descriptionOfSrc, descriptionOfTarget);
@@ -133,10 +138,10 @@ public class Comparator {
 	
 	private static Mat calcDescriptor(Mat srcMat) {
 		MatOfKeyPoint keyPoint = new MatOfKeyPoint();// 特徴点
-		FeatureDetector featureDetector = FeatureDetector.create(detectors.get(2));
+		FeatureDetector featureDetector = FeatureDetector.create(detectors.get(0));
 		featureDetector.detect(srcMat, keyPoint);
 		Mat descriptor = new Mat();// 特徴量
-		DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(extractors.get(1));
+		DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(extractors.get(0));
 		descriptorExtractor.compute(srcMat, keyPoint, descriptor);
 		return descriptor;
 	}

@@ -71,7 +71,7 @@ public class MainPaneController implements Initializable {
 
 	@FXML
 	private MenuItem startDemoMenuItem;
-	
+
 	@FXML
 	private ImageView mainImageView;
 
@@ -107,41 +107,43 @@ public class MainPaneController implements Initializable {
 
 	@FXML
 	private TableView<ResultRow> resultTableView;
-	
-	@FXML
-	private TableColumn<ResultRow,String> faceNumColumn;
 
 	@FXML
-	private TableColumn<ResultRow,Float> src01Column;
+	private TableColumn<ResultRow, String> faceNumColumn;
 
 	@FXML
-	private TableColumn<ResultRow,Float> src02Column;
+	private TableColumn<ResultRow, Float> src01Column;
 
 	@FXML
-	private TableColumn<ResultRow,Float> src03Column;
+	private TableColumn<ResultRow, Float> src02Column;
 
 	@FXML
-	private TableColumn<ResultRow,Float> src04Column;
+	private TableColumn<ResultRow, Float> src03Column;
 
 	@FXML
-	private TableColumn<ResultRow,Float> src05Column;
+	private TableColumn<ResultRow, Float> src04Column;
 
 	@FXML
-	private TableColumn<ResultRow,Float> src06Column;
-	
+	private TableColumn<ResultRow, Float> src05Column;
+
 	@FXML
-	private TableColumn<ResultRow,BigDecimal> averageColumn;
+	private TableColumn<ResultRow, Float> src06Column;
+
+	@FXML
+	private TableColumn<ResultRow, BigDecimal> averageColumn;
+
+	private Comparator comparator = new Comparator();
 	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		this.setDisableToMenuItems(true);
-//		this.setSrcImages();
+		// this.setSrcImages();
 		this.setResultTableView();
-				
+
 		System.out.println("HelloCv : 起動完了");
 	}
-	
-	private void setResultTableView(){	
+
+	private void setResultTableView() {
 		faceNumColumn.setCellValueFactory(new PropertyValueFactory<>("faceName"));
 		src01Column.setCellValueFactory(new PropertyValueFactory<>("score0fSrc01"));
 		src02Column.setCellValueFactory(new PropertyValueFactory<>("score0fSrc02"));
@@ -153,15 +155,16 @@ public class MainPaneController implements Initializable {
 	}
 
 	private void setDisableToMenuItems(boolean bool) {
-		MenuItem menuItems[] = { saveMenuItem, saveAsMenuItem, faceDetectMenuItem, compareMenuItem,
-				fitScreenMenuItem, originalSizeMenuItem };
+		MenuItem menuItems[] = { saveMenuItem, saveAsMenuItem, faceDetectMenuItem, compareMenuItem, fitScreenMenuItem,
+				originalSizeMenuItem };
 		Arrays.asList(menuItems).stream().forEach(item -> item.setDisable(bool));
 	}
 
 	private void setSrcImages() {
 		String directoryPath = ImageContoroller.RESOURCES_PATH + File.separator + "learning";
 		String regex = "^.*\\.jpg$";
-		List<Pair<File, WritableImage>> srcImages = ImageContoroller.filesToImages(ImageContoroller.listFile(directoryPath, regex));
+		List<Pair<File, WritableImage>> srcImages = ImageContoroller.filesToImages(ImageContoroller.listFile(
+				directoryPath, regex));
 		ImageView srcImgViewList[] = { srcImageView01, srcImageView02, srcImageView03, srcImageView04,
 				srcImageView05, };
 		Label srcImgLabelList[] = { srcImageLabel01, srcImageLabel02, srcImageLabel03, srcImageLabel04,
@@ -171,15 +174,16 @@ public class MainPaneController implements Initializable {
 			srcImgViewList[i].setFitWidth(120);
 			srcImgLabelList[i].setText(srcImages.get(i).getKey().getName());
 		}
+
+		this.comparator.setResourceMats();
 		
-		FileChooser chooser = new FileChooser();
-		chooser.setTitle("Please select an image file.");
-		List<File> files = chooser.showOpenMultipleDialog(topPane.getScene().getWindow());
-		
-		Comparator.createResourceMats(files);
-		
+//		FileChooser chooser = new FileChooser();
+//		chooser.setTitle("Please select an image file.");
+//		List<File> files = chooser.showOpenMultipleDialog(topPane.getScene().getWindow());
+//		comparator.createResourceMats(files);
 	}
 
+	
 	@FXML
 	void onSelectTargetMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Select Target Image]");
@@ -187,8 +191,8 @@ public class MainPaneController implements Initializable {
 		if (file == null)
 			return;
 
-		Comparator.setTargetImageData(file);
-		mainImageView.setImage(ImageContoroller.MatToWRImage(Comparator.getCurrentMat()));
+		this.comparator.setTargetImageData(file);
+		mainImageView.setImage(ImageContoroller.MatToWRImage(this.comparator.getCurrentMat()));
 		this.setDisableToMenuItems(false);
 		System.out.println("HelloCv : → Open " + file.getName());
 	}
@@ -240,7 +244,7 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onFaceDetectMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [FaceDetect]");
-		WritableImage faceDetect = ImageContoroller.addRectangleToWRImage(Comparator.getCurrentMat());
+		WritableImage faceDetect = ImageContoroller.addRectangleToWRImage(this.comparator.getCurrentMat());
 		mainImageView.setImage(faceDetect);
 	}
 
@@ -257,22 +261,22 @@ public class MainPaneController implements Initializable {
 	void onCompareMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Excute Comparison]");
 		resultTableView.getItems().clear();
-		
-		CompareResult compareResult = Comparator.getCompareResult();
 
-		List<ResultRow> rows = new ArrayList<>();		
+		CompareResult compareResult = this.comparator.getCompareResult();
+
+		List<ResultRow> rows = new ArrayList<>();
 		int faceNum = 1;
 		for (Map<String, Double> resultMap : compareResult.getResultList()) {
 			rows.add(new ResultRow(faceNum, resultMap));
 			faceNum++;
-		}		
+		}
 		resultTableView.getItems().addAll(rows);
 
 		mainImageView.setImage(ImageContoroller.MatToWRImage(compareResult.getResultMat()));
 		System.out.println("HelloCv : [Finish Comparison]");
 	}
-	
-	public static class ResultRow{
+
+	public static class ResultRow {
 		private StringProperty faceName = new SimpleStringProperty();
 		private DoubleProperty score0fSrc01 = new SimpleDoubleProperty();
 		private DoubleProperty score0fSrc02 = new SimpleDoubleProperty();
@@ -281,25 +285,23 @@ public class MainPaneController implements Initializable {
 		private DoubleProperty score0fSrc05 = new SimpleDoubleProperty();
 		private DoubleProperty score0fSrc06 = new SimpleDoubleProperty();
 		private DoubleProperty average = new SimpleDoubleProperty();
-		
+
 		public ResultRow(int faceNum, Map<String, Double> resultMap) {
-			this.setFaceName(new String("Face "+faceNum));
+			this.setFaceName(new String("Face " + faceNum));
 			this.setScores(resultMap);
 		}
-		
-		private void setScores(Map<String, Double> resultMap){
-			this.average.set(BigDecimal.valueOf(resultMap.get("average")).setScale(1, RoundingMode.HALF_UP).doubleValue());			
-			System.out.println("FaceName: "+this.faceName.get()+"  Average: " + this.average.get());
-						
-			List<Double> scores = resultMap.keySet().stream()
-					.filter(key -> !key.equals("average"))
-					.map(key -> {
-						Double score = BigDecimal.valueOf(resultMap.get(key)).setScale(1, RoundingMode.HALF_UP).doubleValue();
-						System.out.println(" " + key + " : " + score);
-						return score;
-					})
-					.collect(Collectors.toList());
-			
+
+		private void setScores(Map<String, Double> resultMap) {
+			this.average.set(BigDecimal.valueOf(resultMap.get("average")).setScale(1, RoundingMode.HALF_UP)
+					.doubleValue());
+			System.out.println("FaceName: " + this.faceName.get() + "  Average: " + this.average.get());
+
+			List<Double> scores = resultMap.keySet().stream().filter(key -> !key.equals("average")).map(key -> {
+				Double score = BigDecimal.valueOf(resultMap.get(key)).setScale(1, RoundingMode.HALF_UP).doubleValue();
+				System.out.println(" " + key + " : " + score);
+				return score;
+			}).collect(Collectors.toList());
+
 			this.score0fSrc01.set(scores.get(0));
 			this.score0fSrc02.set(scores.get(1));
 			this.score0fSrc03.set(scores.get(2));
@@ -307,52 +309,67 @@ public class MainPaneController implements Initializable {
 			this.score0fSrc05.set(scores.get(4));
 			this.score0fSrc06.set(scores.get(5));
 		}
-		
+
 		public String getFaceName() {
-	        return faceName.get();
-	    }
+			return faceName.get();
+		}
+
 		public void setFaceName(String faceName) {
-	        this.faceName.set(faceName);
-	    }
+			this.faceName.set(faceName);
+		}
+
 		public Double getScore0fSrc01() {
 			return score0fSrc01.get();
 		}
+
 		public void setScore0fSrc01(Float score0fSrc01) {
 			this.score0fSrc01.set(score0fSrc01);
 		}
+
 		public Double getScore0fSrc02() {
 			return score0fSrc02.get();
 		}
+
 		public void setScore0fSrc02(Float score0fSrc02) {
 			this.score0fSrc02.set(score0fSrc02);
 		}
+
 		public Double getScore0fSrc03() {
 			return score0fSrc03.get();
 		}
+
 		public void setScore0fSrc03(Float score0fSrc03) {
 			this.score0fSrc03.set(score0fSrc03);
 		}
+
 		public Double getScore0fSrc04() {
 			return score0fSrc04.get();
 		}
+
 		public void setScore0fSrc04(Float score0fSrc04) {
 			this.score0fSrc04.set(score0fSrc04);
 		}
+
 		public Double getScore0fSrc05() {
 			return score0fSrc05.get();
 		}
+
 		public void setScore0fSrc05(Float score0fSrc05) {
 			this.score0fSrc05.set(score0fSrc05);
 		}
+
 		public Double getScore0fSrc06() {
 			return score0fSrc06.get();
 		}
+
 		public void setScore0fSrc06(Float score0fSrc06) {
 			this.score0fSrc06.set(score0fSrc06);
 		}
+
 		public Double getAverage() {
 			return average.get();
 		}
+
 		public void setAverage(Double average) {
 			this.average.set(average);
 		}
@@ -371,7 +388,7 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onOriginalSizeMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Original Size] ");
-		WritableImage wi = ImageContoroller.MatToWRImage(Comparator.getCurrentMat());
+		WritableImage wi = ImageContoroller.MatToWRImage(this.comparator.getCurrentMat());
 		mainImageView.setFitHeight(wi.getHeight());
 		mainImageView.setFitWidth(wi.getWidth());
 		mainImagePane.heightProperty().removeListener(imageHeightChangeListener);
@@ -385,27 +402,27 @@ public class MainPaneController implements Initializable {
 	private ChangeListener<? super Number> imageWidthChangeListener = (ob, o, n) -> {
 		mainImageView.setFitWidth(mainImagePane.getWidth());
 	};
-	
+
 	@FXML
 	void onStartDemoMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Demo...]");
-	    try {
-	        FXMLLoader loader = new FXMLLoader();
-	        loader.setLocation(this.getClass().getResource("DemoDialog.fxml"));
-	        AnchorPane page = (AnchorPane) loader.load();
+		try {
+			FXMLLoader loader = new FXMLLoader();
+			loader.setLocation(this.getClass().getResource("DemoDialog.fxml"));
+			AnchorPane page = (AnchorPane) loader.load();
 
-	        Stage dialogStage = new Stage();
-	        dialogStage.setTitle("顔認証 解説 デモ");
-	        dialogStage.initModality(Modality.WINDOW_MODAL);
-	        Scene scene = new Scene(page);
-	        dialogStage.setScene(scene);
+			Stage dialogStage = new Stage();
+			dialogStage.setTitle("顔認証 解説 デモ");
+			dialogStage.initModality(Modality.WINDOW_MODAL);
+			Scene scene = new Scene(page);
+			dialogStage.setScene(scene);
 
-	        DemoDialogController controller = loader.getController();
-	        controller.setDialogStage(dialogStage);
+			DemoDialogController controller = loader.getController();
+			controller.setDialogStage(dialogStage);
 
-	        dialogStage.showAndWait();
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	    }
+			dialogStage.showAndWait();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
