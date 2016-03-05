@@ -44,7 +44,7 @@ public class Comparator {
 		return targetImageData.getCurrentMat();
 	}
 
-	public CompareResult getCompareResult() {
+	public CompareResult getCompareResult(int detector,int extractor) {
 //		createResourceMats();
 
 		Mat targetMat = targetImageData.getCurrentMat();
@@ -59,7 +59,8 @@ public class Comparator {
 			Set<String> srcKeySet = resourceMats.keySet();
 
 			srcKeySet.stream().parallel().forEach((srcKey) -> {
-				Double minDistance = getMinOfDistance(resourceMats.get(srcKey), targetFace);
+				Double minDistance = getMinOfDistance(resourceMats.get(srcKey), targetFace,detector,extractor);
+//				Double minDistance = getMinOfDistance(resourceMats.get(srcKey), targetFace);
 				resultMap.put(srcKey, minDistance);
 			});
 
@@ -132,11 +133,54 @@ public class Comparator {
 		return calcMinOfDist(matches);
 	}
 
-	static final private List<Integer> detectors = Arrays.asList(FeatureDetector.AKAZE,FeatureDetector.BRISK,FeatureDetector.DENSE,FeatureDetector.GFTT);
-	static final private List<Integer> extractors = Arrays.asList(DescriptorExtractor.AKAZE,DescriptorExtractor.BRISK,DescriptorExtractor.ORB);
-	static final private List<Integer> matchers = Arrays.asList(DescriptorMatcher.BRUTEFORCE_HAMMING,DescriptorMatcher.BRUTEFORCE);
+	private Double getMinOfDistance(Mat srcMat, Mat targetMat,int detector, int extractor) {
+		Mat descriptionOfSrc = calcDescriptor(srcMat,detector,extractor);
+		Mat descriptionOfTarget = calcDescriptor(targetMat,detector,extractor);
+		MatOfDMatch matches = matchDescriptors(descriptionOfSrc, descriptionOfTarget);
+		return calcMinOfDist(matches);
+	}
 	
-	private static Mat calcDescriptor(Mat srcMat) {
+	public void compareDetectors(){
+		Mat targetMat = targetImageData.getCurrentMat();
+		Map<Rect, Mat> targetFaces = ImageContoroller.getFaceMapFromsrcMat(targetMat);
+		Set<Rect> targetKeySet = targetFaces.keySet();
+
+		Map<Rect, Map<String, Double>> resultMaps = new HashMap<>();
+
+		for (int i = 0; i < detectors.size(); i++) {
+			int detector = detectors.get(i);
+
+			for (int j = 0; j < extractors.size(); i++) {
+				int extractor= extractors.get(j);
+				
+				targetKeySet.stream().parallel().forEach((targetKey) -> {
+					Mat targetFace = targetFaces.get(targetKey);
+					Map<String, Double> resultMap = new HashMap<>();
+					Set<String> srcKeySet = resourceMats.keySet();
+
+					srcKeySet.stream().parallel().forEach((srcKey) -> {
+						Double minDistance = getMinOfDistance(resourceMats.get(srcKey), targetFace,detector,extractor);
+						resultMap.put(srcKey, minDistance);
+					});
+
+					Double average = srcKeySet.stream().collect(Collectors.averagingDouble(key -> resultMap.get(key)));
+
+					if (average > 1) {
+						resultMap.put("average", average);
+						resultMaps.put(targetKey, resultMap);
+					}
+				});				
+			}
+		}				
+		Mat resultMat = createResultMat(targetMat, resultMaps);
+	}
+	
+	final private List<Integer> detectors = Arrays.asList(FeatureDetector.AKAZE,FeatureDetector.BRISK,FeatureDetector.GFTT);
+	final private List<Integer> extractors = Arrays.asList(DescriptorExtractor.AKAZE,DescriptorExtractor.BRISK,DescriptorExtractor.ORB);
+	final private List<Integer> matchers = Arrays.asList(DescriptorMatcher.BRUTEFORCE_HAMMING,DescriptorMatcher.BRUTEFORCE);
+
+	
+	private Mat calcDescriptor(Mat srcMat) {
 		MatOfKeyPoint keyPoint = new MatOfKeyPoint();// 特徴点
 		FeatureDetector featureDetector = FeatureDetector.create(detectors.get(0));
 		featureDetector.detect(srcMat, keyPoint);
@@ -146,14 +190,24 @@ public class Comparator {
 		return descriptor;
 	}
 
-	private static MatOfDMatch matchDescriptors(Mat queryDescriptor, Mat trainDescriptor) {
+	private Mat calcDescriptor(Mat srcMat, int detector, int extractor) {
+		MatOfKeyPoint keyPoint = new MatOfKeyPoint();// 特徴点
+		FeatureDetector featureDetector = FeatureDetector.create(detector);
+		featureDetector.detect(srcMat, keyPoint);
+		Mat descriptor = new Mat();// 特徴量
+		DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(extractor);
+		descriptorExtractor.compute(srcMat, keyPoint, descriptor);
+		return descriptor;
+	}
+	
+	private MatOfDMatch matchDescriptors(Mat queryDescriptor, Mat trainDescriptor) {
 		MatOfDMatch matches = new MatOfDMatch();// 特徴量同士の比較結果
 		DescriptorMatcher matcher = DescriptorMatcher.create(matchers.get(0));
 		matcher.match(queryDescriptor, trainDescriptor, matches);
 		return matches;
 	}
 
-	private static Double calcMinOfDist(MatOfDMatch matches) {
+	private Double calcMinOfDist(MatOfDMatch matches) {
 		return matches.toList().stream()
 				.mapToDouble(item -> Float.valueOf(item.distance).doubleValue())
 				.min().orElse(10000D);

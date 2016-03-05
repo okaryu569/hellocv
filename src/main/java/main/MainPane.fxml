@@ -24,6 +24,13 @@
             <items>
               <MenuItem fx:id="faceDetectMenuItem" mnemonicParsing="false" onAction="#onFaceDetectMenuItemFired" text="Face Ditection" />
                   <MenuItem fx:id="compareMenuItem" mnemonicParsing="false" onAction="#onCompareMenuItemFired" text="Compare" />
+                  <Menu mnemonicParsing="false" text="Compare ...">
+                     <items>
+                        <MenuItem fx:id="akazeAkazeMenuItem" mnemonicParsing="false" onAction="#onCompareAkazeMenuItemFired" text="AKAZE AKAZE" />
+                        <MenuItem fx:id="briskBriskMenuItem" mnemonicParsing="false" onAction="#onCompareBriskMenuItemFired" text="BRISK BRISK" />
+                        <MenuItem fx:id="gfttBriskMenuItem" mnemonicParsing="false" onAction="#onCompareGFTTMenuItemFired" text="GFTT BRISK" />
+                     </items>
+                  </Menu>
             </items>
           </Menu>
             <Menu mnemonicParsing="false" text="View">

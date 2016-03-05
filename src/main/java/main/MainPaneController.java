@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+import org.opencv.features2d.DescriptorExtractor;
+import org.opencv.features2d.FeatureDetector;
+
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -72,6 +75,15 @@ public class MainPaneController implements Initializable {
 	@FXML
 	private MenuItem startDemoMenuItem;
 
+	@FXML
+	private MenuItem akazeAkazeMenuItem;
+
+	@FXML
+	private MenuItem briskBriskMenuItem;
+	
+	@FXML
+	private MenuItem gfttBriskMenuItem;
+	
 	@FXML
 	private ImageView mainImageView;
 
@@ -143,6 +155,11 @@ public class MainPaneController implements Initializable {
 		System.out.println("HelloCv : 起動完了");
 	}
 
+	private void setupMenuItem(){
+		
+	}
+	
+	
 	private void setResultTableView() {
 		faceNumColumn.setCellValueFactory(new PropertyValueFactory<>("faceName"));
 		src01Column.setCellValueFactory(new PropertyValueFactory<>("score0fSrc01"));
@@ -262,7 +279,7 @@ public class MainPaneController implements Initializable {
 		System.out.println("HelloCv : [Excute Comparison]");
 		resultTableView.getItems().clear();
 
-		CompareResult compareResult = this.comparator.getCompareResult();
+		CompareResult compareResult = this.comparator.getCompareResult(FeatureDetector.BRISK, DescriptorExtractor.BRISK);
 
 		List<ResultRow> rows = new ArrayList<>();
 		int faceNum = 1;
@@ -275,7 +292,40 @@ public class MainPaneController implements Initializable {
 		mainImageView.setImage(ImageContoroller.MatToWRImage(compareResult.getResultMat()));
 		System.out.println("HelloCv : [Finish Comparison]");
 	}
+	
+	@FXML
+	void onCompareAkazeMenuItemFired(ActionEvent event) {
+		this.onCompareFired(FeatureDetector.AKAZE, DescriptorExtractor.AKAZE);
+	}
 
+	@FXML
+	void onCompareBriskMenuItemFired(ActionEvent event) {
+		this.onCompareFired(FeatureDetector.BRISK, DescriptorExtractor.BRISK);
+	}
+	
+	@FXML
+	void onCompareGFTTMenuItemFired(ActionEvent event) {
+		this.onCompareFired(FeatureDetector.GFTT, DescriptorExtractor.BRISK);
+	}
+	
+	private void onCompareFired(int detector,int extractor){
+		System.out.println("HelloCv : [Excute Comparison]");
+		resultTableView.getItems().clear();
+
+		CompareResult compareResult = this.comparator.getCompareResult(detector,extractor);
+
+		List<ResultRow> rows = new ArrayList<>();
+		int faceNum = 1;
+		for (Map<String, Double> resultMap : compareResult.getResultList()) {
+			rows.add(new ResultRow(faceNum, resultMap));
+			faceNum++;
+		}
+		resultTableView.getItems().addAll(rows);
+
+		mainImageView.setImage(ImageContoroller.MatToWRImage(compareResult.getResultMat()));
+		System.out.println("HelloCv : [Finish Comparison]");
+	}
+	
 	public static class ResultRow {
 		private StringProperty faceName = new SimpleStringProperty();
 		private DoubleProperty score0fSrc01 = new SimpleDoubleProperty();
