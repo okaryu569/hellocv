@@ -24,7 +24,7 @@ public class Comparator {
 
 	private static final Float INICIAL_VALUE = 100000.0F;
 
-	private static List<Mat> srcMats;
+//	private static List<Mat> srcMats;
 	private static ImageData targetImageData;
 
 	private static Map<String, Mat> resourceMats;
@@ -46,7 +46,7 @@ public class Comparator {
 	}
 
 	public static CompareResult getCompareResult() {
-		createResourceMats();
+//		createResourceMats();
 
 		Mat targetMat = targetImageData.getCurrentMat();
 		Map<Rect, Mat> targetFaces = ImageContoroller.getFaceMapFromsrcMat(targetMat);
@@ -61,7 +61,7 @@ public class Comparator {
 
 			srcKeySet.stream().parallel().forEach((srcKey) -> {
 				Double minDistance = getMinOfDistance(resourceMats.get(srcKey), targetFace);
-				resultMap.put(srcKey, 1000D/minDistance);
+				resultMap.put(srcKey, minDistance);
 			});
 
 			Double average = srcKeySet.stream().collect(Collectors.averagingDouble(key -> resultMap.get(key)));
@@ -85,11 +85,16 @@ public class Comparator {
 			return result.intValue();
 		})).orElse(new Rect());
 		
+		Rect minKey = faceKeys.stream().collect(Collectors.minBy((key1, key2) -> {
+			Double result = (resultMaps.get(key1).get("average") - resultMaps.get(key2).get("average")) * 1000;
+			return result.intValue();
+		})).orElse(new Rect());
+		
 		int faceNum = 1;
 		for (Rect faceKey : faceKeys) {
 			String scoreText =  BigDecimal.valueOf(resultMaps.get(faceKey).get("average")).setScale(1, RoundingMode.HALF_UP).toString();
 		
-			if (faceKey.equals(maxKey)) {
+			if (faceKey.equals(minKey)) {
 				Imgproc.rectangle(targetMat, new Point(faceKey.x, faceKey.y),
 						new Point(faceKey.x + faceKey.width, faceKey.y + faceKey.height), new Scalar(0, 255, 0), 6);
 				Imgproc.putText(targetMat, String.valueOf(faceNum), new Point(faceKey.x, faceKey.y), 1, 5, new Scalar(255, 255, 0), 6);
@@ -105,12 +110,13 @@ public class Comparator {
 		return targetMat;
 	}
 
-	private static void createResourceMats() {
+	public static void createResourceMats(List<File> srcFiles) {
 		String directoryPath = ImageContoroller.RESOURCES_PATH + File.separator + "learning";
 		String regex = "^.*\\.jpg$";
-		srcMats = ImageContoroller.filesToMats(ImageContoroller.listFile(directoryPath, regex));
+//		srcMats = ImageContoroller.filesToMats(ImageContoroller.listFile(directoryPath, regex));
 
 		resourceMats = ImageContoroller.filesToMapOfMat(ImageContoroller.listFile(directoryPath, regex));
+//		resourceMats = ImageContoroller.filesToMapOfMat(srcFiles);
 	}
 
 	public static Double getMinOfDistance(Mat srcMat, Mat targetMat) {
@@ -120,6 +126,8 @@ public class Comparator {
 		return calcMinOfDist(matches);
 	}
 
+	static final private int[] detectors = {FeatureDetector.SIFT,FeatureDetector.AKAZE,FeatureDetector.BRISK};
+	
 	private static Mat calcDescriptor(Mat srcMat) {
 		MatOfKeyPoint keyPoint = new MatOfKeyPoint();// 特徴点
 		FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.BRISK);

@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<VBox fx:id="topPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" styleClass="base" stylesheets="@Main.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.MainPaneController">
+<VBox fx:id="topPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1200.0" styleClass="base" stylesheets="@Main.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.MainPaneController">
    <children>
       <MenuBar>
         <menus>
@@ -34,7 +34,8 @@
             </Menu>
           <Menu mnemonicParsing="false" text="Help">
             <items>
-              <MenuItem mnemonicParsing="false" text="About" />
+              <MenuItem fx:id="startDemoMenuItem" mnemonicParsing="false" onAction="#onStartDemoMenuItemFired" text="Demo..." />
+                  <MenuItem mnemonicParsing="false" text="About" />
             </items>
           </Menu>
         </menus>
@@ -43,22 +44,25 @@
          <children>
             <VBox HBox.hgrow="ALWAYS">
                <children>
-                  <ScrollPane fx:id="mainImagePane" fitToHeight="true" fitToWidth="true" prefHeight="225.0" prefWidth="646.0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                  <ScrollPane fx:id="mainImagePane" fitToHeight="true" fitToWidth="true" prefWidth="646.0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                      <content>
                         <ImageView fx:id="mainImageView" pickOnBounds="true" preserveRatio="true" />
                      </content>
                   </ScrollPane>
-                  <TableView fx:id="resultTableView" prefHeight="112.0" prefWidth="646.0">
+                  <TableView fx:id="resultTableView" prefHeight="147.0" prefWidth="1046.0">
                     <columns>
                       <TableColumn fx:id="faceNumColumn" prefWidth="75.0" text="Face No." />
                       <TableColumn fx:id="src01Column" prefWidth="75.0" text="src01" />
                         <TableColumn fx:id="src02Column" prefWidth="75.0" text="src02" />
-                        <TableColumn fx:id="src03Column" prefWidth="75.0" text="src03" />
-                        <TableColumn fx:id="src04Column" prefWidth="75.0" text="src04" />
+                        <TableColumn fx:id="src03Column" prefWidth="140.0" text="src03" />
+                        <TableColumn fx:id="src04Column" prefWidth="121.0" text="src04" />
                         <TableColumn fx:id="src05Column" prefWidth="75.0" text="src05" />
                         <TableColumn fx:id="src06Column" prefWidth="75.0" text="src06" />
                         <TableColumn fx:id="averageColumn" prefWidth="75.0" text="Average" />
                     </columns>
+                     <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                     </columnResizePolicy>
                   </TableView>
                </children>
             </VBox>
@@ -74,7 +78,7 @@
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </VBox.margin>
                               </ImageView>
-                              <Label fx:id="srcImageLabel01" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" text="src＿01.png" />
+                              <Label fx:id="srcImageLabel01" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" />
                            </children>
                         </VBox>
                         <VBox layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="100.0">
@@ -84,7 +88,7 @@
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </VBox.margin>
                               </ImageView>
-                              <Label fx:id="srcImageLabel02" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" text="src＿01.png" />
+                              <Label fx:id="srcImageLabel02" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" />
                            </children>
                         </VBox>
                         <VBox layoutX="10.0" layoutY="182.0" prefHeight="200.0" prefWidth="100.0">
@@ -94,7 +98,7 @@
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </VBox.margin>
                               </ImageView>
-                              <Label fx:id="srcImageLabel03" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" text="src＿01.png" />
+                              <Label fx:id="srcImageLabel03" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" />
                            </children>
                         </VBox>
                         <VBox layoutX="10.0" layoutY="354.0" prefHeight="200.0" prefWidth="100.0">
@@ -104,7 +108,7 @@
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </VBox.margin>
                               </ImageView>
-                              <Label fx:id="srcImageLabel04" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" text="src＿01.png" />
+                              <Label fx:id="srcImageLabel04" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" />
                            </children>
                         </VBox>
                         <VBox layoutX="10.0" layoutY="526.0" prefHeight="200.0" prefWidth="100.0">
@@ -114,7 +118,7 @@
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </VBox.margin>
                               </ImageView>
-                              <Label fx:id="srcImageLabel05" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" text="src＿01.png" />
+                              <Label fx:id="srcImageLabel05" alignment="CENTER" contentDisplay="CENTER" prefHeight="12.0" prefWidth="163.0" />
                            </children>
                         </VBox>
                      </children>

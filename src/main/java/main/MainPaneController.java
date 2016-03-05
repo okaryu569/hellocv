@@ -1,6 +1,7 @@
 package main;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
@@ -13,15 +14,15 @@ import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -30,8 +31,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Pair;
 import targetImage.Comparator;
 import targetImage.CompareResult;
@@ -65,6 +69,9 @@ public class MainPaneController implements Initializable {
 	@FXML
 	private MenuItem originalSizeMenuItem;
 
+	@FXML
+	private MenuItem startDemoMenuItem;
+	
 	@FXML
 	private ImageView mainImageView;
 
@@ -128,7 +135,7 @@ public class MainPaneController implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		this.setDisableToMenuItems(true);
-		this.setSrcImages();
+//		this.setSrcImages();
 		this.setResultTableView();
 				
 		System.out.println("HelloCv : 起動完了");
@@ -164,6 +171,13 @@ public class MainPaneController implements Initializable {
 			srcImgViewList[i].setFitWidth(120);
 			srcImgLabelList[i].setText(srcImages.get(i).getKey().getName());
 		}
+		
+		FileChooser chooser = new FileChooser();
+		chooser.setTitle("Please select an image file.");
+		List<File> files = chooser.showOpenMultipleDialog(topPane.getScene().getWindow());
+		
+		Comparator.createResourceMats(files);
+		
 	}
 
 	@FXML
@@ -233,6 +247,7 @@ public class MainPaneController implements Initializable {
 	@FXML
 	void onSelectSourceMenuItemFired(ActionEvent event) {
 		System.out.println("HelloCv : [Select Source Image]");
+		this.setSrcImages();
 	}
 
 	/**
@@ -370,4 +385,27 @@ public class MainPaneController implements Initializable {
 	private ChangeListener<? super Number> imageWidthChangeListener = (ob, o, n) -> {
 		mainImageView.setFitWidth(mainImagePane.getWidth());
 	};
+	
+	@FXML
+	void onStartDemoMenuItemFired(ActionEvent event) {
+		System.out.println("HelloCv : [Demo...]");
+	    try {
+	        FXMLLoader loader = new FXMLLoader();
+	        loader.setLocation(this.getClass().getResource("DemoDialog.fxml"));
+	        AnchorPane page = (AnchorPane) loader.load();
+
+	        Stage dialogStage = new Stage();
+	        dialogStage.setTitle("顔認証 解説 デモ");
+	        dialogStage.initModality(Modality.WINDOW_MODAL);
+	        Scene scene = new Scene(page);
+	        dialogStage.setScene(scene);
+
+	        DemoDialogController controller = loader.getController();
+	        controller.setDialogStage(dialogStage);
+
+	        dialogStage.showAndWait();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
 }

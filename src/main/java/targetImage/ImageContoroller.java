@@ -131,6 +131,12 @@ public class ImageContoroller {
 		return MatToWRImage(addRectangle(srcMat));
 	}
 
+	/**
+	 * 
+	 * @param srcMat
+	 * @return 
+	 */
+	
 	private static MatOfRect detectFace(Mat srcMat) {
 //		CascadeClassifier faceDetector = new CascadeClassifier(
 //				ImageContoroller.class.getClassLoader().getResource("lbpcascade_frontalface.xml").getPath());
