@@ -3,6 +3,7 @@ package targetImage;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,21 +127,23 @@ public class Comparator {
 		return calcMinOfDist(matches);
 	}
 
-	static final private int[] detectors = {FeatureDetector.SIFT,FeatureDetector.AKAZE,FeatureDetector.BRISK};
+	static final private List<Integer> detectors = Arrays.asList(FeatureDetector.AKAZE,FeatureDetector.BRISK,FeatureDetector.DENSE,FeatureDetector.GFTT);
+	static final private List<Integer> extractors = Arrays.asList(DescriptorExtractor.AKAZE,DescriptorExtractor.BRISK,DescriptorExtractor.ORB);
+	static final private List<Integer> matchers = Arrays.asList(DescriptorMatcher.BRUTEFORCE_HAMMING,DescriptorMatcher.BRUTEFORCE);
 	
 	private static Mat calcDescriptor(Mat srcMat) {
 		MatOfKeyPoint keyPoint = new MatOfKeyPoint();// 特徴点
-		FeatureDetector featureDetector = FeatureDetector.create(FeatureDetector.BRISK);
+		FeatureDetector featureDetector = FeatureDetector.create(detectors.get(2));
 		featureDetector.detect(srcMat, keyPoint);
 		Mat descriptor = new Mat();// 特徴量
-		DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.BRISK);
+		DescriptorExtractor descriptorExtractor = DescriptorExtractor.create(extractors.get(1));
 		descriptorExtractor.compute(srcMat, keyPoint, descriptor);
 		return descriptor;
 	}
 
 	private static MatOfDMatch matchDescriptors(Mat queryDescriptor, Mat trainDescriptor) {
 		MatOfDMatch matches = new MatOfDMatch();// 特徴量同士の比較結果
-		DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+		DescriptorMatcher matcher = DescriptorMatcher.create(matchers.get(0));
 		matcher.match(queryDescriptor, trainDescriptor, matches);
 		return matches;
 	}
